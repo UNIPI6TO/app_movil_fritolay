@@ -83,8 +83,8 @@ Verificación de la estructura de carpetas según el patrón MVC/API definido.
 **Resultado de la Auditoría:**
 
 * [x] **CONFORME:** El repositorio cumple con la estructura, versionado y seguridad requerida. Se autoriza el paso a entorno de Testing/Staging.
-* [x] **NO CONFORME:** Se encontraron faltantes críticos. Se rechaza la entrega hasta subsanar los hallazgos.
-* [x] **CONFORME CON OBSERVACIONES:** Se aprueba condicionalmente (detallar abajo).
+* [ ] **NO CONFORME:** Se encontraron faltantes críticos. Se rechaza la entrega hasta subsanar los hallazgos.
+* [ ] **CONFORME CON OBSERVACIONES:** Se aprueba condicionalmente (detallar abajo).
 
 **Hallazgos / Notas:**
 Los nombres estan mal documentados SRS y SDD, no hay changelogs, readme, script iniciales y colecciones de postman o bruno. Se crea un issue con una rama de corrección como sub tarea del issue de auditoria.
@@ -94,4 +94,4 @@ Con el PR https://github.com/UNIPI6TO/app_movil_fritolay/pull/7 se solventan las
 <br>
 
 **Firma del Auditor:**  Wilson Salinas
-**Fecha:**  2026-02-06
+**Fecha:**  2026-02-16

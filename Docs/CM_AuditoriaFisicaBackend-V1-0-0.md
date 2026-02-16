@@ -37,11 +37,11 @@ Verificar la existencia, integridad y correcta ubicación de los Elementos de Co
 
 Se verifica la existencia de los documentos generados en fases previas.
 
-- [ ] **SRS (Requerimientos):** `SRS_Backend_Pedidos.md`  
-- [ ] **SDD (Diseño):** `SDD_Arquitectura_Backend.md` (Diagramas ER y Arquitectura).
+- [x] **SRS (Requerimientos):** `SRS_Backend_Pedidos.md`  
+- [x] **SDD (Diseño):** `SDD_Arquitectura_Backend.md` (Diagramas ER y Arquitectura).
 Nota: No se encuentra renombrtado correctamente el archivo¿
-- [ ] **RFC (Cambios):** `RFC-001-Implementacion-Master.md` (Aprobado).
-- [ ] **Plan de Pruebas:** `Plan_Pruebas_QA.md` (Casos de uso CP-001 a CP-020).
+- [x] **RFC (Cambios):** `RFC-001-Implementacion-Master.md` (Aprobado).
+- [x] **Plan de Pruebas:** `Plan_Pruebas_QA.md` (Casos de uso CP-001 a CP-020).
 
 ---
 
@@ -50,21 +50,21 @@ Nota: No se encuentra renombrtado correctamente el archivo¿
 Verificación de la estructura de carpetas según el patrón MVC/API definido.
 
 ### 📂 /BackendPedidos
-- [ ] **Controllers/**
-    - [ ] `Cuenta/ControladorCuenta.cs` (Debe contener Registro con Cédula).
-    - [ ] `Productos/ControladorProductos.cs` (Debe manejar lista de imágenes).
-    - [ ] `Pedido/ControladorPedidos.cs` (Lógica transaccional sin carrito BD).
-- [ ] **Modelos/**
-    - [ ] `Cliente.cs` (Verificar propiedad `[Required] string Cedula`).
-    - [ ] `Producto.cs` (Verificar `decimal PorcentajeImpuesto`).
-    - [ ] `Pedido.cs` y `DetallePedido.cs`.
-- [ ] **Modelos/Dto/**
-    - [ ] `DtoRegistro.cs`, `DtoLogin.cs`.
-    - [ ] `DtoCrearPedido.cs` (Estructura limpia sin precios).
-- [ ] **Datos/**
-    - [ ] `ContextoBaseDatos.cs` (DbSet definidos).
-- [ ] **Migrations/**
-    - [ ] Verificar existencia de archivos de migración.
+- [x] **Controllers/**
+    - [x] `Cuenta/ControladorCuenta.cs` (Debe contener Registro con Cédula).
+    - [x] `Productos/ControladorProductos.cs` (Debe manejar lista de imágenes).
+    - [x] `Pedido/ControladorPedidos.cs` (Lógica transaccional sin carrito BD).
+- [x] **Modelos/**
+    - [x] `Cliente.cs` (Verificar propiedad `[Required] string Cedula`).
+    - [x] `Producto.cs` (Verificar `decimal PorcentajeImpuesto`).
+    - [x] `Pedido.cs` y `DetallePedido.cs`.
+- [x] **Modelos/Dto/**
+    - [x] `DtoRegistro.cs`, `DtoLogin.cs`.
+    - [x] `DtoCrearPedido.cs` (Estructura limpia sin precios).
+- [x] **Datos/**
+    - [x] `ContextoBaseDatos.cs` (DbSet definidos).
+- [x] **Migrations/**
+    - [x] Verificar existencia de archivos de migración.
 
 ---
 
@@ -83,8 +83,8 @@ Verificación de la estructura de carpetas según el patrón MVC/API definido.
 **Resultado de la Auditoría:**
 
 * [x] **CONFORME:** El repositorio cumple con la estructura, versionado y seguridad requerida. Se autoriza el paso a entorno de Testing/Staging.
-* [ ] **NO CONFORME:** Se encontraron faltantes críticos. Se rechaza la entrega hasta subsanar los hallazgos.
-* [ ] **CONFORME CON OBSERVACIONES:** Se aprueba condicionalmente (detallar abajo).
+* [x] **NO CONFORME:** Se encontraron faltantes críticos. Se rechaza la entrega hasta subsanar los hallazgos.
+* [x] **CONFORME CON OBSERVACIONES:** Se aprueba condicionalmente (detallar abajo).
 
 **Hallazgos / Notas:**
 Los nombres estan mal documentados SRS y SDD, no hay changelogs, readme, script iniciales y colecciones de postman o bruno. Se crea un issue con una rama de corrección como sub tarea del issue de auditoria.

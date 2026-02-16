@@ -35,12 +35,19 @@ Verificar que el sistema impida duplicados por Cédula y asegure el acceso media
 | **TEST-03** | Decodificar Token JWT de Login. | Payload incluye `cedula: "171..."`. | Claim presente | ✅ PASS |
 
 ---
-### Evidencia TEST-01![Imagen 1](./Test/TEST-01/TEST-01-01.png) 
 
-### Evidencia TEST-02![Imagen 2](./Test/TEST-02/TEST-02-01.jpeg) 
+### Evidencia TEST-01
 
-### Evidencia TEST-03![Imagen 3](./Test/TEST-03/TEST-03-01.jpeg) ![Imagen 4](./Test/TEST-03/TEST-03-02.jpeg)
- 
+![Imagen 1](../Test/TEST-01/TEST-01-01.png)
+
+### Evidencia TEST-02
+
+![Imagen 2](../Test/TEST-02/TEST-02-01.jpeg)
+
+### Evidencia TEST-03
+
+![Imagen 3](../Test/TEST-03/TEST-03-01.jpeg) ![Imagen 4](../Test/TEST-03/TEST-03-02.jpeg)
+
 ---
 
 ## 3. Auditoría Módulo 2: Catálogo de Productos (RF-003)

@@ -1,0 +1,23 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "CadenaConexionDefault": "Server=SERVIDOR;Database=BASE_DATOS;Trusted_Connection=True;TrustServerCertificate=True;"
+  },
+  "ConfiguracionJwt": {
+    "ClaveSecreta": "TU SECRET KEY",
+    "Emisor": "AppPedidosBackend",
+    "Audiencia": "AppPedidosMovil"
+  },
+
+  "AllowedHosts": "*",
+  "Application": {
+    "Version": "0.1.0",
+    "Name": "Pedidos App"
+
+  }
+}

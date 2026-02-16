@@ -1,2 +1,1 @@
-# app_movil_fritolay
-Aplicación Móvil Para Fritolay Proyecto Integrador
+# backend_app_movil_pedidos

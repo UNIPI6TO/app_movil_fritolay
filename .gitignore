@@ -1,0 +1,31 @@
+## Ignorar directorios de compilación y temporales (Recursivo para src/)
+[Bb]in/
+[Oo]bj/
+
+## Visual Studio y configuraciones de usuario
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## Visual Studio Code
+.vscode/
+
+## Archivos de entorno y secretos (Importante para APIs)
+appsettings.Development.json
+appsettings.Local.json
+.env
+
+## Archivos generados por dotnet
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+## Logs
+*.log
+src/backend/appsettings.json

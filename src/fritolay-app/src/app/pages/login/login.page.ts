@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +13,7 @@ export class LoginPage implements OnInit {
   email = 'admin@fritolay.com';
   pass = '123456';
 
-  constructor(private auth: AuthService, private router: Router) { }
+  constructor(private auth: AuthService, private router: Router, private toast: ToastService) { }
 
   ngOnInit() {
     // Si ya tiene sesión, ir a catálogo
@@ -22,11 +23,11 @@ export class LoginPage implements OnInit {
   }
 
   async login() {
-    const valid = await this.auth.login(this.email, this.pass);
-    if (valid) {
+    const result = await this.auth.login(this.email, this.pass);
+    if (result.success) {
       this.router.navigate(['/catalogo']);
     } else {
-      alert('Credenciales incorrectas');
+      await this.toast.show(result.message || 'Credenciales incorrectas', 3000, 'danger');
     }
   }
 }

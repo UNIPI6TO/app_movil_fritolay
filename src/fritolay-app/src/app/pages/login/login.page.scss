@@ -6,4 +6,12 @@
 .input-rounded {
   border: 1px solid #ddd; border-radius: 25px; margin-bottom: 15px; --background: #f9f9f9;
 }
+/* Forzar color de texto y placeholder dentro del card de login */
+.card-login {
+  ion-input { color: #000; }
+  ion-input::part(native) { color: #000; }
+  input { color: #000; }
+  input::placeholder { color: rgba(0,0,0,0.45) !important; }
+  ion-icon { color: rgba(0,0,0,0.35); }
+}
 .btn-login { margin-top: 20px; --border-radius: 25px; font-weight: bold; }

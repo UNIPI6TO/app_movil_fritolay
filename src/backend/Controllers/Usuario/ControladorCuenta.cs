@@ -78,9 +78,9 @@ namespace backend.Controllers.Usuario
 
         // RF-011: Solicitar Recuperación (Generar Código)
         [HttpPost("recuperar")]
-        public async Task<IActionResult> SolicitarRecuperacion([FromBody] string correo)
+        public async Task<IActionResult> SolicitarRecuperacion([FromBody] Modelos.Dto.DtoRecuperar datos)
         {
-            var cliente = await _contexto.Clientes.FirstOrDefaultAsync(c => c.CorreoElectronico == correo);
+            var cliente = await _contexto.Clientes.FirstOrDefaultAsync(c => c.CorreoElectronico == datos.CorreoElectronico);
             if (cliente == null) return NotFound("Correo no encontrado.");
 
             // Generar código de 6 dígitos

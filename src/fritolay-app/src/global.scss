@@ -35,3 +35,26 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/* Variables y ajustes de accesibilidad */
+:root {
+	--ion-color-primary: #d9302a; /* rojo FritoLay con buen contraste */
+	--ion-color-primary-contrast: #ffffff;
+	--ion-color-primary-contrast-rgb: 255,255,255;
+	--ion-font-family: "Roboto", "Helvetica Neue", sans-serif;
+}
+
+/* Mejora de espaciado y tarjetas */
+.page-padding { padding: 16px; }
+.card-login { max-width: 420px; margin: 28px auto; padding: 20px; border-radius: 12px; background: #ffffff; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+.header-container { text-align: center; margin-top: 36px; }
+.input-rounded { --border-radius: 8px; margin-bottom: 12px; }
+.btn-login { margin-top: 16px; }
+
+/* Contraste de inputs y placeholder */
+ion-input::part(native) { color: #111111; }
+ion-input::part(placeholder) { color: #666666; }
+
+/* Footer tweaks */
+app-footer { width: 100%; position: fixed; bottom: 0; left: 0; right: 0; }
+

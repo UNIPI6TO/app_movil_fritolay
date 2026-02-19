@@ -14,9 +14,14 @@
       <ion-icon name="lock-closed" slot="start"></ion-icon>
       <ion-input [(ngModel)]="pass" type="password" placeholder="Contraseña"></ion-input>
     </ion-item>
-
-    <ion-button expand="block" (click)="login()" color="primary" class="btn-login">
-      INGRESAR
+    <ion-button expand="block" (click)="login()" color="primary" class="btn-login" [disabled]="!email || !pass || isLoading">
+      <ng-container *ngIf="!isLoading">INGRESAR</ng-container>
+      <ng-container *ngIf="isLoading">Cargando...</ng-container>
     </ion-button>
+    <div class="login-actions">
+      <ion-button fill="clear" size="small" (click)="router.navigate(['/registro'])">Registrarse</ion-button>
+      <ion-button fill="clear" size="small" (click)="router.navigate(['/recuperar'])">Recuperar credenciales</ion-button>
+    </div>
   </div>
+  
 </ion-content>

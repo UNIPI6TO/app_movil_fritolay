@@ -56,6 +56,66 @@ export class AuthService {
     }
   }
 
+  async register(datos: { Cedula: string; NombreCompleto: string; CorreoElectronico: string; Contrasena: string; Telefono?: string; Direccion?: string; }): Promise<{ success: boolean; message?: string }> {
+    const url = `${this.apiUrl}api/ControladorCuenta/registrar`;
+    try {
+      const resp: any = await firstValueFrom(this.http.post(url, datos));
+      const message = resp && resp.mensaje ? resp.mensaje : 'Registro completado';
+      return { success: true, message };
+    } catch (err: any) {
+      let message = 'Error al registrar usuario';
+      if (err && err.error) {
+        if (typeof err.error === 'string') message = err.error;
+        else if (err.error.message) message = err.error.message;
+      } else if (err && err.message) {
+        message = err.message;
+      }
+      return { success: false, message };
+    }
+  }
+
+  async recuperar(correo: string): Promise<{ success: boolean; message?: string; codigoDebug?: string }> {
+    const url = `${this.apiUrl}api/ControladorCuenta/recuperar`;
+    try {
+      // El backend ahora espera un objeto JSON: { CorreoElectronico }
+      const payload = { CorreoElectronico: correo };
+      const resp: any = await firstValueFrom(this.http.post(url, payload));
+      const message = resp && resp.mensaje ? resp.mensaje : 'Código enviado';
+      const codigo = resp && resp.codigoDebug ? resp.codigoDebug : undefined;
+      return { success: true, message, codigoDebug: codigo };
+    } catch (err: any) {
+      // Manejo más explícito de errores de red / certificado dev
+      let message = 'Error al solicitar recuperación';
+      if (err && err.status === 0) {
+        message = 'No se pudo conectar al servidor. Verifique que el backend esté en ejecución y que confíe el certificado HTTPS en el navegador.';
+      } else if (err && err.error) {
+        if (typeof err.error === 'string') message = err.error;
+        else if (err.error.message) message = err.error.message;
+      } else if (err && err.message) {
+        message = err.message;
+      }
+      return { success: false, message };
+    }
+  }
+
+  async restablecer(datos: { CorreoElectronico: string; CodigoVerificacion: string; NuevaContrasena: string }): Promise<{ success: boolean; message?: string }> {
+    const url = `${this.apiUrl}api/ControladorCuenta/restablecer`;
+    try {
+      const resp: any = await firstValueFrom(this.http.post(url, datos));
+      const message = resp && resp.mensaje ? resp.mensaje : 'Contraseña restablecida';
+      return { success: true, message };
+    } catch (err: any) {
+      let message = 'Error al restablecer contraseña';
+      if (err && err.error) {
+        if (typeof err.error === 'string') message = err.error;
+        else if (err.error.message) message = err.error.message;
+      } else if (err && err.message) {
+        message = err.message;
+      }
+      return { success: false, message };
+    }
+  }
+
   async logout() {
     await Preferences.remove({ key: 'auth_token' });
     await Preferences.remove({ key: 'user_name' });

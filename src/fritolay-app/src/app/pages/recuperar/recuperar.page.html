@@ -10,4 +10,42 @@
       <ion-title size="large">recuperar</ion-title>
     </ion-toolbar>
   </ion-header>
+  <div class="page-padding">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Recuperar contraseña</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="step === 1">
+          <p>Ingrese su correo para recibir un código de verificación.</p>
+          <ion-item>
+            <ion-label position="stacked">Correo</ion-label>
+            <ion-input type="email" [(ngModel)]="correo"></ion-input>
+          </ion-item>
+          <div class="ion-padding-top">
+            <ion-button expand="block" (click)="pedirCodigo()">Enviar código</ion-button>
+            <ion-button fill="clear" expand="block" (click)="router.navigate(['/login'])">Volver al login</ion-button>
+          </div>
+        </div>
+        <div *ngIf="step === 2">
+          <p>Ingrese el código recibido y la nueva contraseña.</p>
+          <div *ngIf="codigoDebug" class="ion-padding">
+            <ion-note color="tertiary">Código de prueba: <strong>{{codigoDebug}}</strong></ion-note>
+          </div>
+          <ion-item>
+            <ion-label position="stacked">Código</ion-label>
+            <ion-input [(ngModel)]="codigo"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Nueva contraseña</ion-label>
+            <ion-input type="password" [(ngModel)]="nuevaContrasena"></ion-input>
+          </ion-item>
+          <div class="ion-padding-top">
+            <ion-button expand="block" (click)="restablecer()">Restablecer contraseña</ion-button>
+            <ion-button fill="clear" expand="block" (click)="router.navigate(['/login'])">Cancelar</ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
 </ion-content>

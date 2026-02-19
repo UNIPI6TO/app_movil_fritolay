@@ -1,0 +1,21 @@
+.privacy-container { padding: 16px; }
+.privacy-container h2 { margin-top: 8px; }
+.privacy-container p { color: #333; }
+
+ion-card {
+	background: #fff;
+}
+
+ion-card-content {
+	color: #222;
+	line-height: 1.45;
+}
+
+/* Evitar que el footer cubra el contenido */
+.privacy-container { padding-bottom: 100px; }
+
+/* Mejor lectura en pantallas pequeñas */
+@media (max-width: 420px) {
+	.privacy-container { padding: 12px; }
+	ion-card-content { font-size: 14px; }
+}

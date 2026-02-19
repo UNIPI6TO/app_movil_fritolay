@@ -10,4 +10,41 @@
       <ion-title size="large">registro</ion-title>
     </ion-toolbar>
   </ion-header>
+  <div class="page-padding">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Crear cuenta</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Cédula</ion-label>
+          <ion-input [(ngModel)]="cedula"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Nombre completo</ion-label>
+          <ion-input [(ngModel)]="nombre"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Correo</ion-label>
+          <ion-input type="email" [(ngModel)]="correo"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Contraseña</ion-label>
+          <ion-input type="password" [(ngModel)]="contrasena"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Teléfono (opcional)</ion-label>
+          <ion-input [(ngModel)]="telefono"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Dirección (opcional)</ion-label>
+          <ion-input [(ngModel)]="direccion"></ion-input>
+        </ion-item>
+        <div class="ion-padding-top">
+          <ion-button expand="block" (click)="register()" [disabled]="!cedula || !nombre || !correo || !contrasena">Registrarse</ion-button>
+          <ion-button fill="clear" expand="block" (click)="router.navigate(['/login'])">Volver al login</ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
 </ion-content>

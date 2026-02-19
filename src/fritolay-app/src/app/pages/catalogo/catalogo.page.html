@@ -16,8 +16,8 @@
       <ion-col size="6" size-md="4" *ngFor="let p of productos">
         <ion-card class="product-card">
           <div class="img-box">
-            <img [src]="p.imagenes[0]" [alt]="p.nombre" 
-                 onerror="this.src='assets/placeholder.png'">
+              <img [src]="p.imagenes[0]" [alt]="p.nombre" 
+                onerror="this.src='assets/placeholder.svg'">
           </div>
           <ion-card-header>
             <ion-card-subtitle>{{p.categoria}}</ion-card-subtitle>

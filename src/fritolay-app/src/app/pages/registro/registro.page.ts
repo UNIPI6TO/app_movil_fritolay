@@ -3,6 +3,7 @@ import { AuthService } from '../../services/auth';
 import { ToastService } from '../../services/toast.service';
 import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-registro',
@@ -19,7 +20,7 @@ export class RegistroPage implements OnInit {
   telefono = '';
   direccion = '';
 
-  constructor(private auth: AuthService, private toast: ToastService, public router: Router, private loadingCtrl: LoadingController) { }
+  constructor(private auth: AuthService, private toast: ToastService, public router: Router, private loadingCtrl: LoadingController, private location: Location) { }
 
   ngOnInit() {
   }
@@ -50,6 +51,10 @@ export class RegistroPage implements OnInit {
     } else {
       await this.toast.show(res.message || 'Error en registro', 3000, 'danger');
     }
+  }
+
+  goBack() {
+    this.location.back();
   }
 
 }

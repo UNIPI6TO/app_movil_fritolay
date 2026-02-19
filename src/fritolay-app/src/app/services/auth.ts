@@ -18,6 +18,72 @@ export class AuthService {
     this.checkSession();
   }
 
+  private extractErrorMessage(err: any, fallback = 'Error en la operación'): string {
+    if (!err) return fallback;
+    // Network / CORS / certificate
+    if (err.status === 0) return 'No se pudo conectar al servidor. Verifique que el backend esté en ejecución y que confíe el certificado HTTPS en el navegador.';
+
+    const e = err.error;
+    try { console.debug('AuthService.extractErrorMessage - status:', err?.status, 'errorBody:', e); } catch {}
+    if (!e) {
+      if (err.message) return err.message;
+      return fallback;
+    }
+
+    if (typeof e === 'string') {
+      // Some backends return a JSON string inside the error body; try parsing
+      const trimmed = e.trim();
+      if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
+        try {
+          const parsed = JSON.parse(e);
+          if (parsed) {
+            if (typeof parsed === 'string') return parsed;
+            if (parsed.mensaje) return parsed.mensaje;
+            if (parsed.message) return parsed.message;
+            if (parsed.detail) return parsed.detail;
+            if (parsed.title) return parsed.title;
+            // fallthrough to stringify
+            return JSON.stringify(parsed);
+          }
+        } catch {
+          // not JSON, continue
+        }
+      }
+      return e;
+    }
+    if (e.mensaje) return e.mensaje;
+    if (e.message) return e.message;
+    if (e.Message) return e.Message;
+
+    // ASP.NET validation errors often come in an object under 'errors'
+    if (e.errors && typeof e.errors === 'object') {
+      try {
+        // `flat()` may not be available depending on target lib; concatenate manually
+        const raw = Object.values(e.errors);
+        const vals: string[] = [];
+        for (const item of raw) {
+          if (Array.isArray(item)) {
+            for (const v of item) {
+              if (v != null) vals.push(String(v));
+            }
+          } else if (item != null) {
+            vals.push(String(item));
+          }
+        }
+        return vals.join(' ');
+      } catch {
+        // fallthrough
+      }
+    }
+
+    // Fallback to stringifying the object
+    try {
+      return JSON.stringify(e);
+    } catch {
+      return fallback;
+    }
+  }
+
   // Verificar si hay token guardado al abrir la app
   async checkSession() {
     const { value } = await Preferences.get({ key: 'auth_token' });
@@ -44,14 +110,7 @@ export class AuthService {
       this.authState.next(true);
       return { success: true };
     } catch (err: any) {
-      // Intentar extraer mensaje enviado por el backend
-      let message = 'Error al iniciar sesión';
-      if (err && err.error) {
-        if (typeof err.error === 'string') message = err.error;
-        else if (err.error.message) message = err.error.message;
-      } else if (err && err.message) {
-        message = err.message;
-      }
+      const message = this.extractErrorMessage(err, 'Error al iniciar sesión');
       return { success: false, message };
     }
   }
@@ -63,13 +122,7 @@ export class AuthService {
       const message = resp && resp.mensaje ? resp.mensaje : 'Registro completado';
       return { success: true, message };
     } catch (err: any) {
-      let message = 'Error al registrar usuario';
-      if (err && err.error) {
-        if (typeof err.error === 'string') message = err.error;
-        else if (err.error.message) message = err.error.message;
-      } else if (err && err.message) {
-        message = err.message;
-      }
+      const message = this.extractErrorMessage(err, 'Error al registrar usuario');
       return { success: false, message };
     }
   }
@@ -84,16 +137,7 @@ export class AuthService {
       const codigo = resp && resp.codigoDebug ? resp.codigoDebug : undefined;
       return { success: true, message, codigoDebug: codigo };
     } catch (err: any) {
-      // Manejo más explícito de errores de red / certificado dev
-      let message = 'Error al solicitar recuperación';
-      if (err && err.status === 0) {
-        message = 'No se pudo conectar al servidor. Verifique que el backend esté en ejecución y que confíe el certificado HTTPS en el navegador.';
-      } else if (err && err.error) {
-        if (typeof err.error === 'string') message = err.error;
-        else if (err.error.message) message = err.error.message;
-      } else if (err && err.message) {
-        message = err.message;
-      }
+      const message = this.extractErrorMessage(err, 'Error al solicitar recuperación');
       return { success: false, message };
     }
   }
@@ -105,13 +149,7 @@ export class AuthService {
       const message = resp && resp.mensaje ? resp.mensaje : 'Contraseña restablecida';
       return { success: true, message };
     } catch (err: any) {
-      let message = 'Error al restablecer contraseña';
-      if (err && err.error) {
-        if (typeof err.error === 'string') message = err.error;
-        else if (err.error.message) message = err.error.message;
-      } else if (err && err.message) {
-        message = err.message;
-      }
+      const message = this.extractErrorMessage(err, 'Error al restablecer contraseña');
       return { success: false, message };
     }
   }

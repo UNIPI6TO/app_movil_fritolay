@@ -1,13 +1,16 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>registro</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear nueva cuenta</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">registro</ion-title>
+      <ion-title size="large">Crear nueva cuenta</ion-title>
     </ion-toolbar>
   </ion-header>
   <div class="page-padding">
@@ -42,7 +45,7 @@
         </ion-item>
         <div class="ion-padding-top">
           <ion-button expand="block" (click)="register()" [disabled]="!cedula || !nombre || !correo || !contrasena">Registrarse</ion-button>
-          <ion-button fill="clear" expand="block" (click)="router.navigate(['/login'])">Volver al login</ion-button>
+                <ion-button fill="clear" expand="block" (click)="goBack()">Volver</ion-button>
         </div>
       </ion-card-content>
     </ion-card>

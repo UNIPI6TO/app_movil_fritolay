@@ -1,13 +1,16 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>recuperar</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Recuperar Contraseña</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">recuperar</ion-title>
+      <ion-title size="large">Recuperar Contraseña</ion-title>
     </ion-toolbar>
   </ion-header>
   <div class="page-padding">
@@ -24,13 +27,17 @@
           </ion-item>
           <div class="ion-padding-top">
             <ion-button expand="block" (click)="pedirCodigo()">Enviar código</ion-button>
-            <ion-button fill="clear" expand="block" (click)="router.navigate(['/login'])">Volver al login</ion-button>
+            <ion-button fill="clear" expand="block" (click)="goBack()">Volver</ion-button>
           </div>
         </div>
         <div *ngIf="step === 2">
-          <p>Ingrese el código recibido y la nueva contraseña.</p>
-          <div *ngIf="codigoDebug" class="ion-padding">
-            <ion-note color="tertiary">Código de prueba: <strong>{{codigoDebug}}</strong></ion-note>
+          <p>Ingrese el código recibido en su bandeja de correo {{correo}}, revise los correos no deseados e ingrese la nueva contraseña.</p>
+          <div class="ion-padding">
+            <ion-note color="tertiary" *ngIf="timerSeconds &gt; 0">Código válido por: <strong>{{timerDisplay}}</strong></ion-note>
+            <div *ngIf="canRequestNew" class="ion-padding">
+              <ion-note color="warning">El código expiró.</ion-note>
+              <ion-button expand="block" (click)="pedirCodigo()">Pedir nuevo código</ion-button>
+            </div>
           </div>
           <ion-item>
             <ion-label position="stacked">Código</ion-label>
@@ -42,7 +49,7 @@
           </ion-item>
           <div class="ion-padding-top">
             <ion-button expand="block" (click)="restablecer()">Restablecer contraseña</ion-button>
-            <ion-button fill="clear" expand="block" (click)="router.navigate(['/login'])">Cancelar</ion-button>
+            <ion-button fill="clear" expand="block" (click)="goBack()">Cancelar</ion-button>
           </div>
         </div>
       </ion-card-content>

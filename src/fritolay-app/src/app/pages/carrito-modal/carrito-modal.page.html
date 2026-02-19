@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Mi Pedido</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let item of items">
+      <ion-thumbnail slot="start">
+        <img [src]="item.producto.imagenes[0]">
+      </ion-thumbnail>
+      <ion-label>
+        <h2>{{item.producto.nombre}}</h2>
+        <p>${{item.producto.precio}} x {{item.cantidad}}</p>
+      </ion-label>
+      <div slot="end" class="qty-control">
+        <ion-button size="small" (click)="menos(item)">-</ion-button>
+        <span style="margin: 0 10px;">{{item.cantidad}}</span>
+        <ion-button size="small" (click)="mas(item)">+</ion-button>
+      </div>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="ion-padding" style="display:flex; justify-content:space-between; align-items:center;">
+      <h3>Total: ${{total | number:'1.2-2'}}</h3>
+      <ion-button color="secondary" shape="round">Pagar</ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

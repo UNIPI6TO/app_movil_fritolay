@@ -1,0 +1,22 @@
+<ion-content class="bg-primary">
+  <div class="header-container">
+    <img src="https://www.fritolay.com/sites/fritolay.com/themes/fritolay/img/logo.png" width="120">
+  </div>
+  
+  <div class="card-login">
+    <h2>Bienvenido</h2>
+    <ion-item lines="none" class="input-rounded">
+      <ion-icon name="mail" slot="start"></ion-icon>
+      <ion-input [(ngModel)]="email" placeholder="Correo"></ion-input>
+    </ion-item>
+    
+    <ion-item lines="none" class="input-rounded">
+      <ion-icon name="lock-closed" slot="start"></ion-icon>
+      <ion-input [(ngModel)]="pass" type="password" placeholder="Contraseña"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" (click)="login()" color="primary" class="btn-login">
+      INGRESAR
+    </ion-button>
+  </div>
+</ion-content>

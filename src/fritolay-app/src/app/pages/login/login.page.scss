@@ -1,0 +1,9 @@
+.bg-primary { --background: var(--ion-color-primary); }
+.header-container { height: 35%; display: flex; align-items: center; justify-content: center; }
+.card-login {
+  background: white; height: 65%; border-radius: 30px 30px 0 0; padding: 30px;
+}
+.input-rounded {
+  border: 1px solid #ddd; border-radius: 25px; margin-bottom: 15px; --background: #f9f9f9;
+}
+.btn-login { margin-top: 20px; --border-radius: 25px; font-weight: bold; }

@@ -25,6 +25,7 @@ namespace backend.Controllers.Producto
             var listaProductos = await _contexto.Productos
                 .Include(p => p.Imagenes)
                 .Where(p => p.Activo == true) // Solo productos activos
+                .OrderBy(p => p.Nombre)
                 .AsNoTracking() // Optimización de lectura
                 .ToListAsync();
 
@@ -41,6 +42,7 @@ namespace backend.Controllers.Producto
                 {
                     IdProducto = p.IdProducto,
                     Nombre = p.Nombre,
+                    SKU = p.SKU,
                     Descripcion = p.Descripcion,
                     PrecioFinal = Math.Round(precioFinal, 2), // Redondeo a 2 decimales
                     // Convertimos la lista de objetos Imagen a una lista simple de Strings (URLs)
@@ -77,9 +79,13 @@ namespace backend.Controllers.Producto
             {
                 IdProducto = producto.IdProducto,
                 Nombre = producto.Nombre,
+                SKU = producto.SKU,
                 Descripcion = producto.Descripcion,
                 PrecioFinal = Math.Round(baseImponible + impuesto, 2),
-                ImagenesUrl = producto.Imagenes.Select(i => i.UrlImagen).ToList()
+                ImagenesUrl = producto.Imagenes
+                                .OrderBy(i => i.IdImagen)
+                                .Select(i => i.UrlImagen)
+                                .ToList()
             };
 
             return Ok(dto);

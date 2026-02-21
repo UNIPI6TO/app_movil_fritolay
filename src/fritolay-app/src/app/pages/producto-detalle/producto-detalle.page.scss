@@ -1,0 +1,23 @@
+.image-strip {
+  margin-bottom: 12px;
+}
+.images-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.images-scroll img {
+  height: 180px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.no-image {
+  height: 180px;
+  display:flex;align-items:center;justify-content:center;color:#888;background:#f0f0f0;border-radius:8px;
+}
+.info { margin-bottom: 12px; }
+.price { color: var(--ion-color-primary); margin:0 0 6px 0 }
+.sku { color: #777; margin:0 0 6px 0 }
+.desc { color: #444 }
+.actions { margin-top: 8px }

@@ -28,7 +28,9 @@ namespace backend.Modelos
 
         public bool Activo { get; set; } = true;
 
-        
+        [MaxLength(100)]
+        public string SKU { get; set; }
+
         public List<ImagenProducto> Imagenes { get; set; }
 
     }

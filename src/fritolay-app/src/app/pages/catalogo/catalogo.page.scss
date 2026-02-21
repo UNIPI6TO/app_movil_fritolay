@@ -7,3 +7,189 @@
 .cart-fab {
 	bottom: 72px; /* adjust if footer height changes */
 }
+
+
+/* Fondo blanco detrás de las cards: aplica igualmente en modo claro/oscuro */
+.catalog-list {
+	background: #f4f5f8;
+	border-radius: 12px;
+	padding: 14px;
+	padding: 10px 12px;
+}
+.ion-padding{
+	background: #ffffff;
+}
+
+body.dark .catalog-list { background: #ffffff; }
+
+/* Force the whole content background to white so cards sit on white surface */
+ion-content {
+	--background: #ffffff !important;
+	background: #ffffff !important;
+}
+
+/* Ensure dark mode does not recolor the content background */
+body.dark ion-content {
+	--background: #ffffff !important;
+	background: #ffffff !important;
+	color: #222222;
+}
+
+.item-card {
+	--padding-start: 0;
+	--padding-end: 0;
+	margin-bottom: 14px;
+	background-color: #f4f5f8;
+}
+
+.product-card {
+	border-radius: 12px;
+	overflow: hidden;
+	/* sombra más suave para reducir ruido */
+	box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+	display: block;
+	background: #ffffff; /* fondo claro consistente */
+	color: #222222;
+	border: 1px solid rgba(0,0,0,0.06);
+	transition: transform .14s ease, box-shadow .14s ease;
+}
+
+.product-card:active,
+.product-card:focus-within {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 18px rgba(16,24,40,0.08);
+}
+
+.img-box {
+	position: relative;
+	width: 100%;
+	height: 160px;
+	background: transparent;
+	border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.img-box img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.price-badge {
+	position: absolute;
+	left: 12px;
+	bottom: 12px;
+	/* color custom (azul) como en la imagen: fondo azul y texto blanco */
+	background: var(--price-badge-color, #0b66ff);
+	color: #ffffff;
+	padding: 5px 8px;
+	border-radius: 6px;
+	font-weight: 700;
+	font-size: 0.85rem;
+	box-shadow: 0 2px 6px rgba(16,24,40,0.06);
+}
+
+.product-name {
+	font-size: 1rem;
+	font-weight: 700;
+	margin-bottom: 6px;
+	font-size: 1.05rem;
+	color: #222222;
+}
+
+.meta-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+/* Ensure meta items align and hide accidental avatar/circle elements */
+.meta-row > * { display: inline-flex; align-items: center; gap: 8px; }
+.meta-row ion-avatar, .meta-row .avatar, .meta-row .circle-placeholder { display: none !important; }
+.meta-row ::ng-deep ion-avatar { display: none !important; }
+
+.chip-category {
+	--background: transparent;
+	--border-color: rgba(0,0,0,0.08);
+	--color: var(--ion-text-color);
+	height: 26px;
+	font-size: 0.82rem;
+}
+
+.sku.muted {
+  font-size: 0.78rem;
+	color: rgba(0,0,0,0.6);
+}
+
+.desc {
+	color: rgba(0,0,0,0.66);
+	margin: 6px 0 12px 0;
+	max-height: 48px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.actions {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.btn-add {
+	--padding-start: 12px;
+	--padding-end: 12px;
+	--border-radius: 20px;
+	--box-shadow: none;
+	font-weight: 700;
+	height: 40px;
+}
+
+.link-ver {
+	background: transparent;
+	border: none;
+	color: rgba(0,0,0,0.55);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+/* Dark mode adjustments: improve contrast when body has class 'dark' (Ionic convention) */
+/* Force same light palette even in dark mode to keep cards consistent */
+body.dark .product-card {
+	background: #ffffff;
+	border: 1px solid rgba(0,0,0,0.06);
+}
+body.dark .product-name { color: #222222; }
+body.dark .chip-category, body.dark .actions, body.dark .link-ver { color: rgba(0,0,0,0.72); }
+body.dark .sku.muted {
+		color: rgba(0,0,0,0.6);
+		font-weight: 600;
+		background: transparent;
+		padding: 0;
+		border-radius: 0;
+}
+body.dark .desc { color: rgba(0,0,0,0.66); }
+body.dark .price-badge { color: #000; background: var(--ion-color-primary, #ffd54a); }
+
+/* Ensure the custom blue price badge stays blue in dark mode */
+body.dark .price-badge { color: #ffffff; background: var(--price-badge-color, #0b66ff); box-shadow: 0 2px 8px rgba(11,102,255,0.12); }
+
+/* Hide more possible circular indicators (radio/avatar) next to SKU */
+.meta-row ion-avatar,
+.meta-row .avatar,
+.meta-row .circle-placeholder,
+.meta-row ion-radio,
+.meta-row .radio-button,
+.meta-row [class*="ion-radio"],
+.meta-row [class*="avatar"],
+.meta-row svg[role="img"] {
+	display: none !important;
+}
+/* Skeleton styles */
+.skeleton-card { background: linear-gradient(90deg,#f6f7f9,#f2f3f5); }
+.skeleton-img { width:100%; height:100%; background: linear-gradient(90deg,#e9e9ea,#f3f3f4); border-radius:6px }
+.skeleton-text { height: 14px; display:block; background: linear-gradient(90deg,#e9e9ea,#f3f3f4); border-radius:4px }
+
+@media (min-width: 768px) {
+	.img-box { height: 200px; }
+	.product-name { font-size: 1.05rem; }
+}

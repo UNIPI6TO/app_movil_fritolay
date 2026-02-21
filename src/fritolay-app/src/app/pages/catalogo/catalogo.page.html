@@ -11,28 +11,65 @@
 
 <ion-content class="ion-padding" style="--background: #f4f5f8;">
   
-  <ion-grid>
-    <ion-row>
-      <ion-col size="6" size-md="4" *ngFor="let p of productos">
-        <ion-card class="product-card">
+  <div class="catalog-list">
+    <ion-list class="catalog-list">
+      <ng-container *ngIf="loading; else loaded">
+        <ion-item lines="none" class="item-card" *ngFor="let n of [1,2,3]" style="--background: #f4f5f8;">
+          <ion-card class="product-card skeleton-card" style="--background: #f4f5f8;">
+            <div class="img-box">
+              <div class="skeleton-img"></div>
+            </div>
+            <ion-card-header>
+              <ion-card-title class="product-name skeleton-text">&nbsp;</ion-card-title>
+              <div class="meta-row">
+                <ion-chip class="chip-category" outline>
+                  <ion-label class="skeleton-text">&nbsp;</ion-label>
+                </ion-chip>
+              </div>
+            </ion-card-header>
+            <ion-card-content>
+              <p class="desc skeleton-text">&nbsp;</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-item>
+      </ng-container>
+      <ng-template #loaded>
+        <ion-item lines="none" *ngFor="let p of productos" class="item-card" style="--background: #f4f5f8;">
+        <ion-card class="product-card" style="--background: #f4f5f8;">
           <div class="img-box">
-              <img [src]="p.imagenes[0]" [alt]="p.nombre" 
-                onerror="this.src='assets/placeholder.svg'">
+            <img [src]="p.imagenes[0]" [alt]="p.nombre"
+              onerror="this.src='assets/placeholder.svg'">
+            <div class="price-badge">${{p.precio | number:'1.2-2'}}</div>
           </div>
+
           <ion-card-header>
-            <ion-card-subtitle>{{p.categoria}}</ion-card-subtitle>
-            <ion-card-title>{{p.nombre}}</ion-card-title>
+            <ion-card-title class="product-name">{{p.nombre}}</ion-card-title>
+            <div class="meta-row">
+              <ion-chip class="chip-category" outline>
+                <ion-label>{{p.categoria}}</ion-label>
+              </ion-chip>
+              <div class="sku muted">{{p.sku}}</div>
+            </div>
           </ion-card-header>
+
           <ion-card-content>
-            <h3 class="price">${{p.precio | number:'1.2-2'}}</h3>
-            <ion-button expand="block" shape="round" color="secondary" (click)="agregar(p)">
-              AGREGAR
-            </ion-button>
+            <p class="desc">{{p.descripcion}}</p>
+            <div class="actions">
+              <ion-button fill="solid" shape="round" color="secondary" (click)="agregar(p)" class="btn-add">
+                <ion-icon name="cart" slot="start"></ion-icon>
+                <span>Agregar</span>
+              </ion-button>
+              <button class="link-ver" (click)="verDetalle(p)">Ver</button>
+            </div>
           </ion-card-content>
         </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+        </ion-item>
+        <ion-item *ngIf="!productos?.length && !loading">
+          <ion-label>No se encontraron productos.</ion-label>
+        </ion-item>
+      </ng-template>
+    </ion-list>
+  </div>
 
   <ion-fab class="cart-fab" vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button color="primary" (click)="verCarrito()">

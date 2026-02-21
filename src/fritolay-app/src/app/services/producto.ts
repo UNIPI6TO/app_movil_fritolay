@@ -1,36 +1,39 @@
 import { Injectable } from '@angular/core';
+import { from, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Producto } from '../interfaces/producto';
+import { ApiService } from './api.service';
+import { environment } from '../../environments/environment';
+
+interface BackendProducto {
+  idProducto: number;
+  nombre: string;
+  descripcion: string;
+  precioFinal: number;
+  sku?: string;
+  imagenesUrl: string[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class ProductoService {
   
-  // Simulando DB con Array de imágenes
-  private productos: Producto[] = [
-    {
-      id: 1,
-      nombre: "Lay's Clásicas",
-      descripcion: "Papas fritas corte clásico",
-      precio: 1.50,
-      categoria: "Papas",
-      imagenes: [
-        "https://i.imgur.com/N8AU8wA.jpeg", 
-        "https://i.imgur.com/uNJlp6F.jpeg",
-        "https://i.imgur.com/C0mlyxg.jpeg"
-      ]
-    },
-    {
-      id: 2,
-      nombre: "Doritos Nacho",
-      descripcion: "Tortillas sabor queso",
-      precio: 1.80,
-      categoria: "Tortillas",
-      imagenes: [
-        "https://i.imgur.com/example-doritos.png"
-      ]
-    }
-  ];
+  private readonly apiUrl = environment.apiUrl + 'api/ControladorProductos';
 
-  getProductos() {
-    return this.productos;
+  constructor(private api: ApiService) { }
+
+  // Obtiene productos del back-end y los transforma al modelo local
+  getProductos(): Observable<Producto[]> {
+    const promise = this.api.get<BackendProducto[]>(this.apiUrl);
+    return from(promise).pipe(
+      map(list => (list || []).map(b => ({
+        id: b.idProducto,
+        nombre: b.nombre,
+        descripcion: b.descripcion,
+        precio: b.precioFinal,
+        sku: b.sku,
+        imagenes: b.imagenesUrl || [],
+        categoria: ''
+      } as Producto)))
+    );
   }
 }

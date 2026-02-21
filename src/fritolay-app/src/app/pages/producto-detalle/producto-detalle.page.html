@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{producto.nombre}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="image-strip">
+    <div *ngIf="producto.imagenes?.length; else noImg" class="images-scroll">
+      <img *ngFor="let img of producto.imagenes" [src]="img" (error)="$event.target.src='assets/placeholder.svg'" />
+    </div>
+    <ng-template #noImg>
+      <div class="no-image">No hay imagen</div>
+    </ng-template>
+  </div>
+
+  <div class="info">
+    <h2 class="price">${{producto.precio | number:'1.2-2'}}</h2>
+    <p class="sku">SKU: <span>{{producto.sku}}</span></p>
+    <p class="desc">{{producto.descripcion}}</p>
+  </div>
+
+  <div class="actions">
+    <ion-button expand="block" color="secondary" (click)="agregarYcerrar()">
+      <ion-icon name="cart" slot="start"></ion-icon> Agregar
+    </ion-button>
+    <ion-button fill="clear" expand="block" (click)="cerrar()">Cerrar</ion-button>
+  </div>
+</ion-content>

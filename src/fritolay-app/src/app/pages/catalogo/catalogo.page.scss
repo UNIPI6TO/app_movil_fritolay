@@ -1,0 +1,9 @@
+/* Ensure cart FAB appears above the fixed footer */
+.cart-fab {
+	z-index: 10001 !important;
+}
+
+/* Slightly lift FAB so it's not flush with the footer */
+.cart-fab {
+	bottom: 72px; /* adjust if footer height changes */
+}

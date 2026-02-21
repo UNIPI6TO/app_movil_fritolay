@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject } from 'rxjs';
+import { ApiService } from './api.service';
 import { Preferences } from '@capacitor/preferences';
 import { environment } from '../../environments/environment';
 
@@ -14,75 +14,11 @@ export class AuthService {
   private authState = new BehaviorSubject<boolean>(false);
   authState$ = this.authState.asObservable();
 
-  constructor(private router: Router, private http: HttpClient) {
+  constructor(private router: Router, private api: ApiService) {
     this.checkSession();
   }
 
-  private extractErrorMessage(err: any, fallback = 'Error en la operación'): string {
-    if (!err) return fallback;
-    // Network / CORS / certificate
-    if (err.status === 0) return 'No se pudo conectar al servidor. Verifique que el backend esté en ejecución y que confíe el certificado HTTPS en el navegador.';
-
-    const e = err.error;
-    try { console.debug('AuthService.extractErrorMessage - status:', err?.status, 'errorBody:', e); } catch {}
-    if (!e) {
-      if (err.message) return err.message;
-      return fallback;
-    }
-
-    if (typeof e === 'string') {
-      // Some backends return a JSON string inside the error body; try parsing
-      const trimmed = e.trim();
-      if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
-        try {
-          const parsed = JSON.parse(e);
-          if (parsed) {
-            if (typeof parsed === 'string') return parsed;
-            if (parsed.mensaje) return parsed.mensaje;
-            if (parsed.message) return parsed.message;
-            if (parsed.detail) return parsed.detail;
-            if (parsed.title) return parsed.title;
-            // fallthrough to stringify
-            return JSON.stringify(parsed);
-          }
-        } catch {
-          // not JSON, continue
-        }
-      }
-      return e;
-    }
-    if (e.mensaje) return e.mensaje;
-    if (e.message) return e.message;
-    if (e.Message) return e.Message;
-
-    // ASP.NET validation errors often come in an object under 'errors'
-    if (e.errors && typeof e.errors === 'object') {
-      try {
-        // `flat()` may not be available depending on target lib; concatenate manually
-        const raw = Object.values(e.errors);
-        const vals: string[] = [];
-        for (const item of raw) {
-          if (Array.isArray(item)) {
-            for (const v of item) {
-              if (v != null) vals.push(String(v));
-            }
-          } else if (item != null) {
-            vals.push(String(item));
-          }
-        }
-        return vals.join(' ');
-      } catch {
-        // fallthrough
-      }
-    }
-
-    // Fallback to stringifying the object
-    try {
-      return JSON.stringify(e);
-    } catch {
-      return fallback;
-    }
-  }
+  // Extracción de mensaje centralizada en `ApiService`.
 
   // Verificar si hay token guardado al abrir la app
   async checkSession() {
@@ -98,7 +34,7 @@ export class AuthService {
     const url = `${this.apiUrl}api/ControladorCuenta/login`;
     const payload = { CorreoElectronico: email, Contrasena: pass };
     try {
-      const resp: any = await firstValueFrom(this.http.post(url, payload));
+      const resp: any = await this.api.post(url, payload);
       if (!resp || !resp.tokenAcceso) return { success: false, message: 'Respuesta inválida del servidor' };
 
       // Guardar token y datos de usuario
@@ -110,7 +46,7 @@ export class AuthService {
       this.authState.next(true);
       return { success: true };
     } catch (err: any) {
-      const message = this.extractErrorMessage(err, 'Error al iniciar sesión');
+      const message = err && err.friendlyMessage ? err.friendlyMessage : 'Error al iniciar sesión';
       return { success: false, message };
     }
   }
@@ -118,26 +54,27 @@ export class AuthService {
   async register(datos: { Cedula: string; NombreCompleto: string; CorreoElectronico: string; Contrasena: string; Telefono?: string; Direccion?: string; }): Promise<{ success: boolean; message?: string }> {
     const url = `${this.apiUrl}api/ControladorCuenta/registrar`;
     try {
-      const resp: any = await firstValueFrom(this.http.post(url, datos));
+      const resp: any = await this.api.post(url, datos);
       const message = resp && resp.mensaje ? resp.mensaje : 'Registro completado';
       return { success: true, message };
     } catch (err: any) {
-      const message = this.extractErrorMessage(err, 'Error al registrar usuario');
+      const message = err && err.friendlyMessage ? err.friendlyMessage : 'Error al registrar usuario';
       return { success: false, message };
     }
   }
 
   async recuperar(correo: string): Promise<{ success: boolean; message?: string; codigoDebug?: string }> {
     const url = `${this.apiUrl}api/ControladorCuenta/recuperar`;
+    let resp: any;
     try {
       // El backend ahora espera un objeto JSON: { CorreoElectronico }
       const payload = { CorreoElectronico: correo };
-      const resp: any = await firstValueFrom(this.http.post(url, payload));
+      resp = await this.api.post(url, payload);
       const message = resp && resp.mensaje ? resp.mensaje : 'Código enviado';
       const codigo = resp && resp.codigoDebug ? resp.codigoDebug : undefined;
       return { success: true, message, codigoDebug: codigo };
     } catch (err: any) {
-      const message = this.extractErrorMessage(err, 'Error al solicitar recuperación');
+      const message = err && err.friendlyMessage ? err.friendlyMessage : 'Error al enviar código de recuperación';
       return { success: false, message };
     }
   }
@@ -145,11 +82,11 @@ export class AuthService {
   async restablecer(datos: { CorreoElectronico: string; CodigoVerificacion: string; NuevaContrasena: string }): Promise<{ success: boolean; message?: string }> {
     const url = `${this.apiUrl}api/ControladorCuenta/restablecer`;
     try {
-      const resp: any = await firstValueFrom(this.http.post(url, datos));
+      const resp: any = await this.api.post(url, datos);
       const message = resp && resp.mensaje ? resp.mensaje : 'Contraseña restablecida';
       return { success: true, message };
     } catch (err: any) {
-      const message = this.extractErrorMessage(err, 'Error al restablecer contraseña');
+      const message = err && err.friendlyMessage ? err.friendlyMessage : 'Error al restablecer contraseña';
       return { success: false, message };
     }
   }

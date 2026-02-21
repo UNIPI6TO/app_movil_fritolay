@@ -38,7 +38,7 @@ export class CatalogoPage implements OnInit {
       }
     });
     this.cartService.carrito$.subscribe(() => {
-      this.cantidadItems = this.cartService.getCantidadItems();
+      this.cantidadItems = this.cartService.getCantidadItemsUnicos();
     });
   }
 

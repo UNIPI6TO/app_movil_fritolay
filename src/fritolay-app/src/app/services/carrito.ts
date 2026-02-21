@@ -61,4 +61,9 @@ export class CarritoService {
   getCantidadItems() {
     return this.items.reduce((acc, item) => acc + item.cantidad, 0);
   }
+    getCantidadItemsUnicos() {
+    return this.items.length;
+  }
+
+
 }

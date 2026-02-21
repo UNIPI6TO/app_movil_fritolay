@@ -11,7 +11,7 @@
 
 <ion-content class="ion-padding">
   <div class="image-strip">
-    <div *ngIf="producto.imagenes?.length; else noImg" class="images-scroll">
+    <div *ngIf="producto.imagenes.length; else noImg" class="images-scroll">
       <img *ngFor="let img of producto.imagenes" [src]="img" (error)="$event.target.src='assets/placeholder.svg'" />
     </div>
     <ng-template #noImg>

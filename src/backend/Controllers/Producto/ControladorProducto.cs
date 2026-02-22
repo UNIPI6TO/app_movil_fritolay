@@ -44,7 +44,12 @@ namespace backend.Controllers.Producto
                     Nombre = p.Nombre,
                     SKU = p.SKU,
                     Descripcion = p.Descripcion,
+                    LineaProducto = p.LineaProducto,
+                    Categoria = p.Categoria,
+                    PrecioBase = Math.Round(p.PrecioBase, 2),
                     PrecioFinal = Math.Round(precioFinal, 2), // Redondeo a 2 decimales
+                    PorcentajeDescuento = p.PorcentajeDescuento,
+                    PorcentajeImpuesto = p.PorcentajeImpuesto,
                     // Convertimos la lista de objetos Imagen a una lista simple de Strings (URLs)
                     ImagenesUrl = p.Imagenes
                                     .OrderBy(img => img.IdImagen) // Ordenar si es necesario
@@ -81,7 +86,12 @@ namespace backend.Controllers.Producto
                 Nombre = producto.Nombre,
                 SKU = producto.SKU,
                 Descripcion = producto.Descripcion,
+                LineaProducto = producto.LineaProducto,
+                Categoria = producto.Categoria,
+                PrecioBase = Math.Round(producto.PrecioBase, 2),
                 PrecioFinal = Math.Round(baseImponible + impuesto, 2),
+                PorcentajeDescuento = producto.PorcentajeDescuento,
+                PorcentajeImpuesto = producto.PorcentajeImpuesto,
                 ImagenesUrl = producto.Imagenes
                                 .OrderBy(i => i.IdImagen)
                                 .Select(i => i.UrlImagen)

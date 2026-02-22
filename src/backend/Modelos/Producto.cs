@@ -33,6 +33,12 @@ namespace backend.Modelos
 
         public List<ImagenProducto> Imagenes { get; set; }
 
+        // Nueva información categórica
+        [MaxLength(100)]
+        public string LineaProducto { get; set; }
+        [MaxLength(100)]
+        public string Categoria { get; set; }
+
     }
     public class ImagenProducto
     {

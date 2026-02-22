@@ -89,6 +89,31 @@ body.dark ion-content {
 	box-shadow: 0 2px 6px rgba(16,24,40,0.06);
 }
 
+.discount-badge {
+	position: absolute;
+	right: 12px;
+	top: 12px;
+	background: var(--ion-color-primary, #0b66ff);
+	color: #ffffff;
+	padding: 6px 10px;
+	border-radius: 4px;
+	font-weight: 700;
+	font-size: 0.75rem;
+	box-shadow: 0 2px 8px rgba(11,102,255,0.2);
+}
+
+.price-value {
+	flex-shrink: 0;
+}
+
+.discount-chip {
+	--padding-start: 6px;
+	--padding-end: 6px;
+	height: auto;
+	margin: 0;
+	--color: #ffffff;
+}
+
 .product-name {
 	font-size: 1rem;
 	font-weight: 700;
@@ -103,17 +128,74 @@ body.dark ion-content {
 	align-items: center;
 }
 
+/* Order total chip in header */
+
+.order-total {
+	background: #FFD54A; /* color solicitado (amarillo Frito Lay) */
+	color: rgba(0,0,0,0.95);
+	font-weight: 800;
+	margin-right: 8px;
+	height: 30px;
+	display: inline-flex;
+	align-items: center;
+	padding: 0 8px;
+	border-radius: 8px;
+	border: none;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+body.dark .order-total {
+	background: #b58300; /* versión más oscura para dark */
+	color: #fff;
+}
+
+/* sub-toolbar debajo del título para mostrar el total sin sobreponer */
+/* sub-toolbar: coloca el chip del total debajo del título */
+.sub-toolbar {
+	--min-height: 40px;
+	padding: 0 12px;
+	box-shadow: none;
+}
+.sub-toolbar-inner {
+	width: 100%;
+	display: flex;
+	justify-content: flex-end; /* mover a la derecha */
+	align-items: center;
+	padding: 6px 0;
+}
+
+/* Total por producto (muestra cuando hay cantidad en carrito) */
+/* item-total removed by request */
+
 /* Ensure meta items align and hide accidental avatar/circle elements */
 .meta-row > * { display: inline-flex; align-items: center; gap: 8px; }
 .meta-row ion-avatar, .meta-row .avatar, .meta-row .circle-placeholder { display: none !important; }
 .meta-row ::ng-deep ion-avatar { display: none !important; }
 
+.chip-linea {
+	/* Línea: color primario (fondo primario, texto blanco) */
+	background: var(--ion-color-primary, #3880ff);
+	color: #ffffff;
+	height: 24px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 0 8px;
+	border-radius: 12px;
+	display: inline-flex;
+	align-items: center;
+}
+
 .chip-category {
-	--background: transparent;
-	--border-color: rgba(0,0,0,0.08);
-	--color: var(--ion-text-color);
-	height: 26px;
-	font-size: 0.82rem;
+	/* Categoria: color secundario */
+	background: var(--ion-color-secondary, #3dc2ff);
+	color: #ffffff;
+	height: 24px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 0 8px;
+	border-radius: 12px;
+	display: inline-flex;
+	align-items: center;
 }
 
 .sku.muted {
@@ -159,7 +241,10 @@ body.dark .product-card {
 	border: 1px solid rgba(0,0,0,0.06);
 }
 body.dark .product-name { color: #222222; }
-body.dark .chip-category, body.dark .actions, body.dark .link-ver { color: rgba(0,0,0,0.72); }
+body.dark .chip-linea { background: color-mix(in srgb, var(--ion-color-primary, #3880ff) 70%, #000 30%); }
+body.dark .chip-category { background: color-mix(in srgb, var(--ion-color-secondary, #3dc2ff) 70%, #000 30%); }
+body.dark .chip-linea, body.dark .chip-category { color: #fff; }
+body.dark .actions, body.dark .link-ver { color: rgba(0,0,0,0.72); }
 body.dark .sku.muted {
 		color: rgba(0,0,0,0.6);
 		font-weight: 600;
@@ -192,4 +277,83 @@ body.dark .price-badge { color: #ffffff; background: var(--price-badge-color, #0
 @media (min-width: 768px) {
 	.img-box { height: 200px; }
 	.product-name { font-size: 1.05rem; }
+}
+
+/* Controles de cantidad en una sola fila */
+.qty-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.qty-controls ion-button {
+	--padding-start: 2px;
+	--padding-end: 2px;
+	--border-radius: 20px;
+	height: 32px;
+	width: 32px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.qty-controls ion-button ion-icon {
+	font-size: 20px;
+}
+
+.qty-controls .qty {
+	min-width: 28px;
+	text-align: center;
+	font-weight: 700;
+	font-size: 0.95rem;
+	color: rgba(0,0,0,0.8);
+}
+
+.qty-controls ion-button[color="danger"] ion-icon {
+	color: var(--ion-color-danger, #ee5253);
+}
+
+.qty-controls ion-input.qty-input {
+	min-width: 50px;
+	max-width: 60px;
+	--padding-start: 4px;
+	--padding-end: 4px;
+	text-align: center;
+	font-weight: 600;
+	font-size: 0.95rem;
+	border: 1px solid rgba(11,102,255,0.2);
+	border-radius: 6px;
+	background: rgba(11,102,255,0.05);
+}
+
+.qty-controls ion-input.qty-input input {
+	font-weight: 600;
+	font-size: 0.95rem;
+	text-align: center;
+}
+
+/* Ajustes para modo oscuro */
+body.dark .qty-controls .qty { color: #fff; }
+body.dark .qty-controls ion-input.qty-input {
+	border-color: rgba(11,102,255,0.4);
+	background: rgba(11,102,255,0.1);
+}
+
+/* Botones + / - con fondo igual al price-badge */
+.qty-controls ion-button:not([color="danger"]) {
+	--background: var(--price-badge-color, #0b66ff);
+	--color: #ffffff;
+	--ripple-color: rgba(255,255,255,0.12);
+	border-radius: 999px;
+	box-shadow: 0 2px 8px rgba(11,102,255,0.12);
+}
+
+.qty-controls ion-button:not([color="danger"]) ion-icon {
+	color: #ffffff;
+	font-size: 18px;
+}
+
+/* Estado activo/press ligeramente más oscuro */
+.qty-controls ion-button:not([color="danger"]):active {
+	filter: brightness(0.92);
 }

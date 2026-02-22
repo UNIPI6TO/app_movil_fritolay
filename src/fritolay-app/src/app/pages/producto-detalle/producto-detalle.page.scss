@@ -7,17 +7,174 @@
   overflow-x: auto;
   padding-bottom: 6px;
 }
-.images-scroll img {
-  height: 180px;
-  border-radius: 8px;
-  object-fit: cover;
+  .image-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .main-image {
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f4f4f6;
+  }
+  .main-image img { width:100%; height:100%; object-fit:cover; display:block }
+  .thumbs { display:flex; gap:8px; margin-top:6px }
+  .thumbs img { width:64px; height:64px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent }
+  .thumbs img:hover { border-color: rgba(0,0,0,0.06) }
+  .thumbs img.active { border-color: var(--price-badge-color, #0b66ff); box-shadow: 0 2px 6px rgba(11,102,255,0.08); }
+  .no-image { height:300px; display:flex;align-items:center;justify-content:center;color:#888;background:#f0f0f0;border-radius:12px; }
+  .info { padding: 8px 2px; }
+  .product-title { margin:0; font-size:1.1rem; font-weight:800 }
+  .title-row { display:flex; align-items:center; justify-content:space-between; gap:10px }
+  .chip-category.small { background: transparent; border:1px solid rgba(0,0,0,0.06); padding:4px 8px; border-radius:12px; font-weight:700; font-size:0.8rem }
+
+  .price-block { display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:12px }
+  .price-left .price { font-size:1rem; font-weight:800; color: var(--price-badge-color, #0b66ff) }
+  .price-badges { display:flex; gap:8px; align-items:center }
+  .price-badges .discount { background: #ffe9e9; color: #d32f2f; padding:4px 6px; border-radius:6px; font-weight:700 }
+  .price-right .price-after { font-weight:800; font-size:1rem; color:#222 }
+  .iva.small { font-size:0.85rem; color:#888 }
+  .desc { color: #444; line-height:1.4; margin-top:10px }
+
+  /* Dark mode adjustments: ensure contrast */
+  body.dark .main-image { background: #1e1e1e; }
+  body.dark .no-image { background: #2a2a2a; color: #ddd; }
+  body.dark .product-title { color: #fff; }
+  body.dark .price-left .price { color: var(--price-badge-color, #0b66ff); }
+  body.dark .price-badges .discount { background: rgba(211,47,47,0.12); color: #ffb3b3; }
+  body.dark .desc { color: #ddd; }
+  body.dark .chip-category.small { border-color: rgba(255,255,255,0.06); color: #fff }
+  body.dark .price-right .price-after { color: #fff }
+
+  /* Thumbs dark mode */
+  body.dark .thumbs img { border: 2px solid transparent }
+  body.dark .thumbs img:hover { border-color: rgba(255,255,255,0.06) }
+  body.dark .thumbs img.active { border-color: var(--price-badge-color, #0b66ff); box-shadow: 0 2px 6px rgba(11,102,255,0.12); }
+
+  .detail-actions { display: flex; gap: 8px; flex-direction: column; }
+
+  .qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .qty-controls ion-button {
+    --padding-start: 2px;
+    --padding-end: 2px;
+    --border-radius: 20px;
+    height: 36px;
+    width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qty-controls ion-button ion-icon {
+    font-size: 20px;
+  }
+
+  .qty-controls .qty {
+    min-width: 32px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: rgba(0,0,0,0.8);
+  }
+
+  .qty-controls ion-button[color="danger"] ion-icon {
+    color: var(--ion-color-danger, #ee5253);
+  }
+
+  /* Botones + / - con fondo igual al price-badge */
+  .qty-controls ion-button:not([color="danger"]) {
+    --background: var(--price-badge-color, #0b66ff);
+    --color: #ffffff;
+    --ripple-color: rgba(255,255,255,0.12);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(11,102,255,0.12);
+  }
+
+  .qty-controls ion-button:not([color="danger"]) ion-icon {
+    color: #ffffff;
+    font-size: 18px;
+  }
+
+  .qty-controls ion-button:not([color="danger"]):active {
+    filter: brightness(0.92);
+  }
+
+  body.dark .qty-controls .qty { color: #fff; }
+
+  /* Estilo solicitado: botones + / - cuadrados con fondo rojo y esquinas redondeadas */
+  .detail-actions .qty-controls ion-button {
+    height: 36px;
+    width: 36px;
+    min-width: 36px;
+    border-radius: 8px; /* esquina ligeramente redondeada como en la imagen */
+    --background: var(--ion-color-danger, #d32f2f);
+    --color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+  }
+
+.detail-actions .qty-controls ion-button ion-icon {
+  font-size: 18px;
+  color: #fff;
 }
-.no-image {
-  height: 180px;
-  display:flex;align-items:center;justify-content:center;color:#888;background:#f0f0f0;border-radius:8px;
+
+.detail-actions .qty-controls .qty {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
 }
-.info { margin-bottom: 12px; }
-.price { color: var(--ion-color-primary); margin:0 0 6px 0 }
-.sku { color: #777; margin:0 0 6px 0 }
-.desc { color: #444 }
-.actions { margin-top: 8px }
+
+.detail-actions .qty-controls ion-input.qty-input {
+	min-width: 50px;
+	max-width: 60px;
+	--padding-start: 4px;
+	--padding-end: 4px;
+	text-align: center;
+	font-weight: 600;
+	font-size: 1rem;
+	border: 1px solid rgba(11,102,255,0.2);
+	border-radius: 6px;
+	background: rgba(11,102,255,0.05);
+  color: rgba(0,0,0,0.8);
+}
+
+.detail-actions .qty-controls ion-input.qty-input input {
+	font-weight: 600;
+	font-size: 1rem;
+	text-align: center;
+  
+}
+
+/* Sticky footer */
+.detail-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,1));
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.footer-left .final-price .label { font-size: 0.8rem; color: rgba(0,0,0,0.6) }
+.footer-left .final-price .amount { font-weight: 800; font-size: 1.05rem; color: var(--price-badge-color, #0b66ff) }
+.footer-right { display:flex; align-items:center; gap:10px }
+.detail-footer ion-button[color="secondary"] { --border-radius: 8px; padding: 8px 14px }
+
+/* Estilos para las líneas del subtotal / descuento / iva / total */
+.final-price { display:flex; flex-direction:column; gap:4px }
+.final-price .label.small { font-size:0.78rem; color:rgba(0,0,0,0.6) }
+.final-price .amount.small { font-size:0.95rem; color:rgba(0,0,0,0.8) }
+.final-price .amount.negative { color: #d32f2f }
+.final-price .amount.total { font-size:1.15rem; font-weight:900 }

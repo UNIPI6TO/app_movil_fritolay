@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/catalogo"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="cargarPedidos()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let p of pedidos">
+      <ion-label>
+        <h3>Pedido #{{p.IdPedido}} - {{p.Estado}}</h3>
+        <p>{{p.FechaCreacion | date:'short'}}</p>
+        <p>Total: ${{p.TotalPagar | number:'1.2-2'}} - Items: {{p.CantidadItems}}</p>
+        <div *ngIf="p.ResumenProductos">
+          <small *ngFor="let rp of p.ResumenProductos">• {{rp.Nombre}} x{{rp.Cantidad}} (${{rp.TotalLinea | number:'1.2-2'}})</small>
+        </div>
+      </ion-label>
+    </ion-item>
+    <ion-item *ngIf="!pedidos.length">
+      <ion-label>No se encontraron pedidos.</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-spinner *ngIf="loading"></ion-spinner>
+  <div *ngIf="error" class="error">{{error}}</div>
+</ion-content>

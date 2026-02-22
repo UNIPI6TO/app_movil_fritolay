@@ -54,8 +54,62 @@ export class CarritoService {
     }
   }
 
+  eliminarProducto(producto: Producto) {
+    const index = this.items.findIndex(i => i.producto.id === producto.id);
+    if (index >= 0) {
+      this.items.splice(index, 1);
+      this.guardarStorage();
+    }
+  }
+
   getTotal() {
-    return this.items.reduce((acc, item) => acc + (item.producto.precio * item.cantidad), 0);
+    return this.items.reduce((acc, item) => {
+      // Si precioFinal está disponible, usarlo; si no, calcular
+      if (item.producto.precioFinal && item.producto.precioFinal > 0) {
+        return acc + (item.producto.precioFinal * item.cantidad);
+      }
+      // Fallback: calcular manualmente si precioFinal no está disponible
+      const precioBase = item.producto.precioBase || 0;
+      const descuentoPercent = item.producto.descuentoPercent || 0;
+      const ivaPercent = item.producto.ivaPercent || 0;
+      
+      const descuentoAmount = (descuentoPercent / 100) * precioBase;
+      const precioConDescuento = Math.max(0, precioBase - descuentoAmount);
+      const ivaAmount = precioConDescuento * (ivaPercent / 100);
+      const precioFinal = precioConDescuento + ivaAmount;
+      
+      return acc + (precioFinal * item.cantidad);
+    }, 0);
+  }
+
+  getPrecioItemConDescuento(item: { producto: Producto, cantidad: number }): number {
+    // Si precioFinal está disponible, usarlo
+    if (item.producto.precioFinal && item.producto.precioFinal > 0) {
+      return item.producto.precioFinal * item.cantidad;
+    }
+    // Fallback: calcular manualmente
+    const precioBase = item.producto.precioBase || 0;
+    const descuentoPercent = item.producto.descuentoPercent || 0;
+    const ivaPercent = item.producto.ivaPercent || 0;
+    
+    const descuentoAmount = (descuentoPercent / 100) * precioBase;
+    const precioConDescuento = Math.max(0, precioBase - descuentoAmount);
+    const ivaAmount = precioConDescuento * (ivaPercent / 100);
+    const precioFinal = precioConDescuento + ivaAmount;
+    
+    return precioFinal * item.cantidad;
+  }
+
+  getDescuentoItem(item: { producto: Producto, cantidad: number }): number {
+    const precioBase = item.producto.precioBase || 0;
+    const descuentoPercent = item.producto.descuentoPercent || 0;
+    const descuentoAmount = (descuentoPercent / 100) * precioBase;
+    return descuentoAmount * item.cantidad;
+  }
+
+  getPrecioBaseItem(item: { producto: Producto, cantidad: number }): number {
+    const precioBase = item.producto.precioBase || 0;
+    return precioBase * item.cantidad;
   }
 
   getCantidadItems() {

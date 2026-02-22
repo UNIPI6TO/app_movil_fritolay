@@ -9,9 +9,14 @@ interface BackendProducto {
   idProducto: number;
   nombre: string;
   descripcion: string;
+  precioBase: number;
   precioFinal: number;
+  porcentajeDescuento: number;
+  porcentajeImpuesto: number;
   sku?: string;
   imagenesUrl: string[];
+  categoria?: string;
+  lineaProducto?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -29,10 +34,14 @@ export class ProductoService {
         id: b.idProducto,
         nombre: b.nombre,
         descripcion: b.descripcion,
-        precio: b.precioFinal,
+        precioBase: b.precioBase || 0,
+        precioFinal: b.precioFinal || 0,
+        descuentoPercent: b.porcentajeDescuento || 0,
+        ivaPercent: b.porcentajeImpuesto || 0,
         sku: b.sku,
         imagenes: b.imagenesUrl || [],
-        categoria: ''
+        categoria: b.categoria || '',
+        linea: b.lineaProducto || ''
       } as Producto)))
     );
   }

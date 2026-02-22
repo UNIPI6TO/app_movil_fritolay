@@ -1,11 +1,29 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-title>Frito Lay Store</ion-title>
+    <ion-title class="ion-text-left">Frito Lay Store</ion-title>
     <ion-buttons slot="end">
+      <ion-button routerLink="/mis-pedidos" fill="clear">
+        Mis pedidos
+      </ion-button>
       <ion-button (click)="logout()">
         <ion-icon name="log-out-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar style="--background: #f4f5f8;" class="sub-toolbar">
+    <div class="sub-toolbar-inner">
+        <ion-item lines="none">
+          <ion-label>Filtro: </ion-label>
+          <ion-select [value]="selectedFiltroValue" (ionChange)="seleccionarFiltro($event.detail.value)" placeholder="Todas" interface="popover">
+            <ion-select-option *ngFor="let o of combinedOptions" [value]="o.value">{{ o.label }}</ion-select-option>
+          </ion-select>
+
+          <div style="flex:1 1 auto"></div>
+          <ion-chip class="order-total" outline *ngIf="total > 0">
+            <ion-label>${{ total | number:'1.2-2' }}</ion-label>
+          </ion-chip>
+        </ion-item>
+    </div>
   </ion-toolbar>
 </ion-header>
 
@@ -34,20 +52,27 @@
         </ion-item>
       </ng-container>
       <ng-template #loaded>
-        <ion-item lines="none" *ngFor="let p of productos" class="item-card" style="--background: #f4f5f8;">
+        <ion-item lines="none" *ngFor="let p of productosFiltrados" class="item-card" style="--background: #f4f5f8;">
         <ion-card class="product-card" style="--background: #f4f5f8;">
           <div class="img-box">
             <img [src]="p.imagenes[0]" [alt]="p.nombre"
               onerror="this.src='assets/placeholder.svg'">
-            <div class="price-badge">${{p.precio | number:'1.2-2'}}</div>
+            <div class="price-badge">${{getPrecioBase(p) | number:'1.2-2'}}</div>
+            <div *ngIf="tieneDescuento(p)" class="discount-badge">-{{p.descuentoPercent | number:'1.0-0'}}%</div>
           </div>
 
           <ion-card-header>
             <ion-card-title class="product-name">{{p.nombre}}</ion-card-title>
             <div class="meta-row">
+              <ion-chip *ngIf="p.linea" class="chip-linea" outline>
+                <ion-label>{{ p.linea }}</ion-label>
+              </ion-chip>
               <ion-chip class="chip-category" outline>
                 <ion-label>{{p.categoria}}</ion-label>
               </ion-chip>
+              
+            </div>
+            <div class="meta-row">
               <div class="sku muted">{{p.sku}}</div>
             </div>
           </ion-card-header>
@@ -55,10 +80,33 @@
           <ion-card-content>
             <p class="desc">{{p.descripcion}}</p>
             <div class="actions">
-              <ion-button fill="solid" shape="round" color="secondary" (click)="agregar(p)" class="btn-add">
-                <ion-icon name="cart" slot="start"></ion-icon>
-                <span>Agregar</span>
-              </ion-button>
+              <ng-container *ngIf="getCantidad(p) > 0; else addBtn">
+                <div class="qty-controls">
+                  <ion-button size="small" fill="clear" (click)="reducir(p)">
+                    <ion-icon name="remove-circle-outline"></ion-icon>
+                  </ion-button>
+                  <ion-input 
+                    type="number" 
+                    class="qty-input" 
+                    [value]="getCantidad(p)"
+                    (ionChange)="cambiarCantidad(p, $event.detail.value)"
+                    min="0"
+                    inputmode="numeric">
+                  </ion-input>
+                  <ion-button size="small" fill="clear" (click)="aumentar(p)">
+                    <ion-icon name="add-circle-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button size="small" color="danger" fill="clear" (click)="borrar(p)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </ng-container>
+              <ng-template #addBtn>
+                <ion-button fill="solid" shape="round" color="secondary" (click)="agregar(p)" class="btn-add">
+                  <ion-icon name="cart" slot="start"></ion-icon>
+                  <span>Agregar</span>
+                </ion-button>
+              </ng-template>
               <button class="link-ver" (click)="verDetalle(p)">Ver</button>
             </div>
           </ion-card-content>

@@ -1,0 +1,45 @@
+.qty-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	justify-content: center;
+}
+
+.qty-control ion-button {
+	--padding-start: 2px;
+	--padding-end: 2px;
+	--border-radius: 20px;
+	height: 28px;
+	width: 28px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	--background: var(--ion-color-primary, #0b66ff);
+	--color: #ffffff;
+	--ripple-color: rgba(255,255,255,0.12);
+	box-shadow: 0 2px 8px rgba(11,102,255,0.12);
+}
+
+.qty-control ion-button ion-icon {
+	font-size: 18px;
+	color: #ffffff;
+}
+
+.qty-control ion-input.qty-input {
+	min-width: 50px;
+	max-width: 60px;
+	--padding-start: 4px;
+	--padding-end: 4px;
+	text-align: center;
+	font-weight: 600;
+	font-size: 0.9rem;
+	border: 1px solid rgba(11,102,255,0.2);
+	border-radius: 6px;
+	background: rgba(11,102,255,0.05);
+}
+
+.qty-control ion-input.qty-input input {
+	font-weight: 600;
+	font-size: 0.9rem;
+	text-align: center;
+}

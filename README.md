@@ -3,13 +3,16 @@
 
 > Sistema completo de gestión de pedidos para distribuidores de Frito Lay
 
-![Versión](https://img.shields.io/badge/Versión-1.1.0--pre.1-blue)
+![Versión](https://img.shields.io/badge/Versión-1.1.0--pre.2-blue)
 ![Estado](https://img.shields.io/badge/Estado-Pre_Release-orange)
 ![Angular](https://img.shields.io/badge/Frontend-Angular_20-red)
 ![Ionic](https://img.shields.io/badge/Framework-Ionic_7+-blueviolet)
 ![.NET](https://img.shields.io/badge/.NET-8.0-blue)
 ![SQL Server](https://img.shields.io/badge/Base_Datos-SQL_Server-cc2927)
 ![JWT](https://img.shields.io/badge/Auth-JWT_Bearer-orange)
+![Backend Tests](https://img.shields.io/badge/Backend_Tests-13/13_passing-success)
+![Frontend Tests](https://img.shields.io/badge/Frontend_Tests-44/44_passing-success)
+![CI/CD](https://img.shields.io/badge/CI/CD-GitHub_Actions-2088FF)
 
 ---
 
@@ -532,7 +535,60 @@ export const environment = {
 
 ---
 
-## 📚 Documentación Adicional
+## � CI/CD - GitHub Actions
+
+### Workflows Automatizados
+
+El proyecto incluye workflows de GitHub Actions que se ejecutan automáticamente en **pull requests** hacia `main`:
+
+#### 🔹 Backend Tests Workflow
+**Archivo:** `.github/workflows/backend-tests.yml`
+
+- ✅ Ejecuta todos los tests unitarios (.NET xUnit)
+- ✅ Verifica build sin warnings
+- ✅ Genera reportes de cobertura de código
+- **Estado actual:** 13/13 tests pasando (100%)
+
+**Trigger:** Pull requests que modifiquen archivos en `src/backend/**`
+
+#### 🔹 Frontend Tests Workflow
+**Archivo:** `.github/workflows/frontend-tests.yml`
+
+- ✅ Ejecuta tests unitarios (Jasmine/Karma)
+- ✅ Verifica build de producción
+- ✅ Ejecuta linter (ESLint)
+- ✅ Genera reportes de cobertura
+- ✅ Auditoría de seguridad con `npm audit`
+- **Estado actual:** 44/44 tests implementados pasando (100%)
+
+**Trigger:** Pull requests que modifiquen archivos en `src/fritolay-app/**`
+
+### Uso para Desarrolladores
+
+```bash
+# 1. Crear branch de feature
+git checkout -b feature/nueva-funcionalidad
+
+# 2. Hacer cambios y commit
+git add .
+git commit -m "feat: descripción de cambios"
+
+# 3. Push y crear PR
+git push origin feature/nueva-funcionalidad
+# Crear PR en GitHub → Los workflows se ejecutan automáticamente
+```
+
+**Los workflows verifican:**
+- ✅ Todos los tests pasan
+- ✅ El código compila sin errores
+- ✅ No hay vulnerabilidades críticas
+- ✅ La cobertura de código se mantiene
+
+**📖 Documentación completa:** [.github/README_WORKFLOWS.md](.github/README_WORKFLOWS.md)
+
+---
+
+## �📚 Documentación Adicional
 
 - [CHANGELOG.md](CHANGELOG.md) - Historial completo de cambios
 - [CM_PLAN.md](CM_PLAN.md) - Plan de cambios (Change Management)

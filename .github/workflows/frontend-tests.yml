@@ -1,0 +1,132 @@
+name: Frontend Tests (Angular/Ionic)
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/fritolay-app/**'
+      - '.github/workflows/frontend-tests.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/fritolay-app/**'
+
+jobs:
+  test:
+    name: Run Frontend Unit Tests
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/fritolay-app
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: src/fritolay-app/package-lock.json
+
+    - name: Instalar dependencias
+      run: npm ci
+
+    - name: Verificar formato de código
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Ejecutar tests unitarios
+      run: npm run test:ci
+      env:
+        CHROME_BIN: /usr/bin/google-chrome-stable
+
+    - name: Ejecutar tests con cobertura
+      run: npm run test:coverage
+      env:
+        CHROME_BIN: /usr/bin/google-chrome-stable
+
+    - name: Publicar resultados de tests
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Frontend Test Results
+        path: src/fritolay-app/coverage/junit.xml
+        reporter: jest-junit
+        fail-on-error: false
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: ./src/fritolay-app/coverage/lcov.info
+        flags: frontend
+        name: frontend-coverage
+        fail_ci_if_error: false
+
+    - name: Comentar cobertura en PR
+      uses: romeovs/lcov-reporter-action@v0.3.1
+      if: github.event_name == 'pull_request'
+      with:
+        lcov-file: ./src/fritolay-app/coverage/lcov.info
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        delete-old-comments: true
+
+  build-check:
+    name: Verificar Build de Producción
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/fritolay-app
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: src/fritolay-app/package-lock.json
+
+    - name: Instalar dependencias
+      run: npm ci
+
+    - name: Build para producción
+      run: npm run build --if-present
+
+    - name: Verificar tamaño de bundle
+      run: |
+        if [ -d "www" ]; then
+          echo "📦 Tamaño del bundle:"
+          du -sh www/
+          find www/ -name "*.js" -exec ls -lh {} \; | awk '{print $5, $9}'
+        fi
+
+  security-check:
+    name: Verificación de Seguridad
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/fritolay-app
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Verificar vulnerabilidades
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
+
+    - name: Verificar dependencias desactualizadas
+      run: npm outdated || true

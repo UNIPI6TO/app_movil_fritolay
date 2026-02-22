@@ -1,0 +1,87 @@
+name: Backend Tests (.NET)
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/backend/**'
+      - '.github/workflows/backend-tests.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/backend/**'
+
+jobs:
+  test:
+    name: Run Backend Unit Tests
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/backend
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restaurar dependencias
+      run: dotnet restore
+
+    - name: Compilar proyecto
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Ejecutar tests unitarios
+      run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+    - name: Publicar resultados de tests
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Backend Test Results
+        path: src/backend/**/test-results.trx
+        reporter: dotnet-trx
+        fail-on-error: true
+
+    - name: Generar reporte de cobertura
+      run: |
+        dotnet test --configuration Release --no-build \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: ./src/backend/coverage/**/coverage.cobertura.xml
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+
+  build-check:
+    name: Verificar Build de Backend
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/backend
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Verificar compilación sin warnings
+      run: dotnet build --configuration Release /warnaserror
+
+    - name: Verificar formato de código
+      run: dotnet format --verify-no-changes --verbosity diagnostic
+      continue-on-error: true

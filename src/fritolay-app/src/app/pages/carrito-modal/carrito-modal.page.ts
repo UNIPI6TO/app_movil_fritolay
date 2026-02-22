@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { CarritoService } from 'src/app/services/carrito';
 import { Producto } from '../../interfaces/producto';
 
@@ -13,7 +14,7 @@ export class CarritoModalPage implements OnInit {
   items: { producto: Producto, cantidad: number }[] = [];
   total = 0;
 
-  constructor(private cartService: CarritoService, private modalCtrl: ModalController) { }
+  constructor(private cartService: CarritoService, private modalCtrl: ModalController, private router: Router) { }
 
   ngOnInit() {
     this.cartService.carrito$.subscribe(datos => {
@@ -106,5 +107,10 @@ export class CarritoModalPage implements OnInit {
         this.cartService.disminuirProducto(item.producto);
       }
     }
+  }
+
+  irACheckout() {
+    this.modalCtrl.dismiss();
+    this.router.navigate(['/checkout']);
   }
 }

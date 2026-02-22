@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Datos;
 
@@ -11,9 +12,11 @@ using backend.Datos;
 namespace backend.Migrations
 {
     [DbContext(typeof(ContextoBaseDatos))]
-    partial class ContextoBaseDatosModelSnapshot : ModelSnapshot
+    [Migration("20260222181223_pagosYEntregasPedidos")]
+    partial class pagosYEntregasPedidos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -260,22 +263,12 @@ namespace backend.Migrations
                     b.Property<int>("IdCliente")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("LatitudEntrega")
-                        .HasColumnType("decimal(18,8)");
-
-                    b.Property<decimal?>("LongitudEntrega")
-                        .HasColumnType("decimal(18,8)");
-
                     b.Property<string>("MetodoPago")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("MontoTotalPagado")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ReferenciaTransferencia")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Subtotal")
                         .HasColumnType("decimal(18,2)");

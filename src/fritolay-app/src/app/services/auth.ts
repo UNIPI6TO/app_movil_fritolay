@@ -96,6 +96,10 @@ export class AuthService {
     await Preferences.remove({ key: 'user_name' });
     await Preferences.remove({ key: 'user_email' });
     await Preferences.remove({ key: 'user_id' });
+    
+    // Limpiar datos de entrega del checkout
+    await Preferences.remove({ key: 'checkout_delivery_data' });
+    
     this.authState.next(false);
     this.router.navigate(['/login']);
   }

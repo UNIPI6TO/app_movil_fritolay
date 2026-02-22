@@ -32,7 +32,7 @@
           (ionChange)="cambiarCantidadItem(item, $event.detail.value)"
           min="0"
           inputmode="numeric"
-          style="max-width: 60px; text-align: center;">
+          style="max-width: 60px; text-align: center; color: black;">
         </ion-input>
         <ion-button size="small" (click)="mas(item)">+</ion-button>
       </div>
@@ -58,7 +58,7 @@
         </div>
       </div>
       <h3 style="margin:0; font-size:1.2rem;">Total: ${{total | number:'1.2-2'}}</h3>
-      <ion-button color="secondary" shape="round">Pagar</ion-button>
+      <ion-button color="secondary" shape="round" (click)="irACheckout()" [disabled]="items.length === 0">Pagar</ion-button>
     </div>
   </ion-toolbar>
 </ion-footer>

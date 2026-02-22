@@ -46,7 +46,7 @@
           </div>
         </div>
         <div class="price-right">
-          <div class="price-after" *ngIf="descuentoPercent > 0">${{ unitPrecioConDescuento | number:'1.2-2' }}</div>
+          <div class="price-after" [class.hidden]="descuentoPercent === 0" style="color: #d0d0d0;">${{ unitPrecioConDescuento | number:'1.2-2' }}</div>
           <div class="iva small">IVA {{ ivaPercent | number:'1.0-0' }}%</div>
         </div>
       </div>

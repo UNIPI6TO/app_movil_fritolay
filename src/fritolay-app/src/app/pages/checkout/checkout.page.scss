@@ -1,0 +1,36 @@
+ion-segment {
+  ion-segment-button {
+    --indicator-color: var(--ion-color-primary);
+    font-size: 0.85em;
+  }
+}
+
+h2 {
+  color: var(--ion-color-primary);
+  margin-bottom: 16px;
+}
+
+ion-card img {
+  object-fit: cover;
+  max-height: 80px;
+}
+
+#map-container {
+  border: 2px solid #ddd;
+}
+
+ion-note small {
+  display: block;
+  margin-top: 8px;
+}
+
+// Asegurar espacio para los botones del paso 2 y 3
+ion-content {
+  --padding-bottom: 120px;
+}
+
+// Estilo para los botones al final de cada paso
+ion-button[expand="block"] {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}

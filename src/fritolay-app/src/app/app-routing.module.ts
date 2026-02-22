@@ -10,6 +10,10 @@ const routes: Routes = [
   { path: 'carrito-modal', loadChildren: () => import('./pages/carrito-modal/carrito-modal.module').then( m => m.CarritoModalPageModule) },
   { path: 'registro', loadChildren: () => import('./pages/registro/registro.module').then( m => m.RegistroPageModule) },
   { path: 'privacy', loadChildren: () => import('./pages/privacy/privacy.module').then( m => m.PrivacyPageModule) },
+  {
+    path: 'checkout',
+    loadChildren: () => import('./pages/checkout/checkout.module').then( m => m.CheckoutPageModule)
+  },
 ];
 
 @NgModule({

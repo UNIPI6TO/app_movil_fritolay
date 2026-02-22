@@ -58,3 +58,67 @@ ion-input::part(placeholder) { color: #666666; }
 /* Footer tweaks */
 app-footer { width: 100%; position: fixed; bottom: 0; left: 0; right: 0; }
 
+/* ===== Leaflet Map Styles ===== */
+/* Asegurar que los tiles de Leaflet se carguen correctamente */
+.leaflet-container {
+  background: #f0f0f0 !important;
+  font-family: 'Roboto', Arial, sans-serif !important;
+}
+
+.leaflet-container img.leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.leaflet-tile-container {
+  pointer-events: none;
+}
+
+.leaflet-tile {
+  pointer-events: none;
+}
+
+/* Fix para imágenes de Leaflet */
+.leaflet-container img {
+  max-width: none !important;
+}
+
+/* Asegurar visibilidad del marcador */
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+  pointer-events: auto !important;
+}
+
+/* Fade-in para tiles */
+.leaflet-tile {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Centrar el contenedor del mapa */
+.leaflet-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Asegurar que el contenedor tenga altura */
+.leaflet-container,
+.leaflet-pane,
+.leaflet-tile-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.leaflet-container {
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  background: #ddd;
+  outline: 0;
+}

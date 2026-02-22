@@ -184,7 +184,7 @@ describe('PedidoService', () => {
       ]
     };
 
-    const detallePromise = service.obtenerDetallePedido(42);
+    const detallePromise = service.obtenerPedidoPorId(42);
 
     const req = httpMock.expectOne(`${environment.apiUrl}api/ControladorPedidos/42`);
     expect(req.request.method).toBe('GET');

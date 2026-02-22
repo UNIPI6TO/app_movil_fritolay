@@ -155,7 +155,6 @@ export class CheckoutPage implements OnInit {
       const coordinates = await Geolocation.getCurrentPosition();
       this.latitudEntrega = coordinates.coords.latitude;
       this.longitudEntrega = coordinates.coords.longitude;
-      console.log('Ubicación obtenida:', this.latitudEntrega, this.longitudEntrega);
     } catch (error) {
       console.error('Error al obtener ubicación:', error);
       this.mostrarToast('No se pudo obtener la ubicación. Seleccione manualmente en el mapa.', 'warning');
@@ -166,7 +165,6 @@ export class CheckoutPage implements OnInit {
   onUbicacionSeleccionada(event: { lat: number; lng: number }) {
     this.latitudEntrega = event.lat;
     this.longitudEntrega = event.lng;
-    console.log('Ubicación seleccionada:', event);
   }
 
   // ===== PAGO Y CREACIÓN DE PEDIDO =====
@@ -226,45 +224,50 @@ export class CheckoutPage implements OnInit {
     await loading.present();
 
     try {
-      // Preparar datos del pedido con nomenclatura del backend (PascalCase)
+      // Preparar datos del pedido (camelCase para coincidir con interfaz TypeScript)
       const productos = this.items.map(item => ({
-        IdProducto: item.producto.id,
-        Cantidad: item.cantidad
+        idProducto: item.producto.id,
+        cantidad: item.cantidad
       }));
 
+      // Construir pedido - Si no es Transferencia, usar espacio en blanco por defecto
       const pedidoData: any = {
-        MetodoPago: this.metodoPago,
-        DireccionEntrega: this.direccionEntrega,
-        ReferenciaTransferencia: this.metodoPago === 'Transferencia' ? this.referenciaTransferencia : null,
-        LatitudEntrega: this.latitudEntrega,
-        LongitudEntrega: this.longitudEntrega,
-        Productos: productos
+        metodoPago: this.metodoPago,
+        direccionEntrega: this.direccionEntrega,
+        referenciaTransferencia: this.metodoPago === 'Transferencia' ? this.referenciaTransferencia : ' ',
+        latitudEntrega: this.latitudEntrega,
+        longitudEntrega: this.longitudEntrega,
+        productos: productos
       };
 
       // Llamar al servicio de API para crear el pedido
       const resultado = await this.pedidoService.crearPedido(pedidoData);
-      console.log('Pedido creado:', resultado);
       
-      // NOTA: Los pagos se registran posteriormente:
-      // - Efectivo: Se registra cuando el repartidor entrega y recibe el pago
-      // - Transferencia: Se registra cuando el administrador verifica la transferencia
-      // - Tarjeta: Es simulación, no se registra en base de datos real
-
+      // Registrar pago automáticamente SOLO para tarjeta
+      // Efectivo y transferencia quedan pendientes
+      if (this.metodoPago === 'Tarjeta') {
+        await this.registrarPagoAutomatico(resultado.idPedido, resultado.totalCobrado);
+      }
+      
       loading.dismiss();
 
-      // Limpiar carrito
-      this.items.forEach(item => {
-        this.cartService.eliminarProducto(item.producto);
-      });
+      // Vaciar carrito completamente (en memoria y Preferences)
+      await this.cartService.vaciarCarrito();
       
-      // Limpiar datos de entrega guardados
-      await this.limpiarDatosEntrega();
+      // Limpiar TODAS las preferencias relacionadas al pedido y checkout
+      await this.limpiarTodasLasPreferencias();
 
-      // Mostrar éxito con toast
-      await this.mostrarToast(
-        `¡Pedido #${resultado.idPedido} creado exitosamente! Total: $${resultado.totalCobrado.toFixed(2)}`,
-        'success'
-      );
+      // Mostrar éxito con toast (mensaje diferenciado según método de pago)
+      let mensajeFinal = `¡Pedido #${resultado.idPedido} creado exitosamente! Total: $${resultado.totalCobrado.toFixed(2)}`;
+      if (this.metodoPago === 'Efectivo') {
+        mensajeFinal += '\n💵 Pago pendiente - Será cobrado en la entrega';
+      } else if (this.metodoPago === 'Transferencia') {
+        mensajeFinal += '\n📱 Pago pendiente - Completar transferencia bancaria';
+      } else if (this.metodoPago === 'Tarjeta') {
+        mensajeFinal += '\n✅ Pago confirmado';
+      }
+      
+      await this.mostrarToast(mensajeFinal, 'success');
       
       // Navegar a mis pedidos después de un breve delay
       setTimeout(() => {
@@ -276,6 +279,27 @@ export class CheckoutPage implements OnInit {
       console.error('Error al crear pedido:', error);
       const mensaje = error.message || 'Error al procesar el pedido. Intente nuevamente.';
       this.mostrarToast(mensaje, 'danger');
+    }
+  }
+
+  async registrarPagoAutomatico(idPedido: number, totalPagar: number) {
+    try {
+      
+      const pago = {
+        idPedido: idPedido,
+        montoPagado: totalPagar,
+        metodoPagoUtilizado: this.metodoPago,
+        referenciaPago: this.metodoPago === 'Transferencia' ? this.referenciaTransferencia : 
+                       (this.metodoPago === 'Tarjeta' ? '****' + this.tarjetaNumero.slice(-4) : undefined),
+        observaciones: `Pago ${this.metodoPago} registrado automáticamente al crear el pedido`
+      };
+
+      const resultado = await this.pedidoService.registrarPago(pago);
+      
+      await this.mostrarToast('Pago registrado correctamente', 'success');
+    } catch (error: any) {
+      console.error('Error al registrar pago automático:', error);
+      console.warn('El pedido se creó pero no se pudo registrar el pago automáticamente');
     }
   }
 
@@ -307,8 +331,6 @@ export class CheckoutPage implements OnInit {
         key: 'checkout_delivery_data',
         value: JSON.stringify(datosEntrega)
       });
-      
-      console.log('Datos de entrega guardados');
     } catch (error) {
       console.error('Error al guardar datos de entrega:', error);
     }
@@ -323,18 +345,27 @@ export class CheckoutPage implements OnInit {
         this.latitudEntrega = datosEntrega.latitudEntrega || 0;
         this.longitudEntrega = datosEntrega.longitudEntrega || 0;
         this.direccionEntrega = datosEntrega.direccionEntrega || '';
-        
-        console.log('Datos de entrega cargados:', datosEntrega);
       }
     } catch (error) {
       console.error('Error al cargar datos de entrega:', error);
     }
   }
 
+  private async limpiarTodasLasPreferencias() {
+    try {
+      await Preferences.remove({ key: 'checkout_delivery_data' });
+      await Preferences.remove({ key: 'checkout_pago_data' });
+      await Preferences.remove({ key: 'checkout_pedido_data' });
+      await Preferences.remove({ key: 'checkout_cache' });
+      await Preferences.remove({ key: 'carrito_compras' });
+    } catch (error) {
+      console.error('Error al limpiar preferencias:', error);
+    }
+  }
+
   private async limpiarDatosEntrega() {
     try {
       await Preferences.remove({ key: 'checkout_delivery_data' });
-      console.log('Datos de entrega limpiados');
     } catch (error) {
       console.error('Error al limpiar datos de entrega:', error);
     }

@@ -6,6 +6,9 @@ import { ApiService } from './api.service';
 export interface DtoCrearPedido {
   metodoPago: string;
   direccionEntrega: string;
+  referenciaTransferencia?: string;
+  latitudEntrega?: number;
+  longitudEntrega?: number;
   productos: {
     idProducto: number;
     cantidad: number;
@@ -84,7 +87,8 @@ export class PedidoService {
 
   async obtenerMisPedidos(): Promise<any[]> {
     try {
-      const response = await this.api.get<any[]>(`${this.apiUrl}/mis-pedidos`);
+      const url = `${this.apiUrl}/mis-pedidos`;
+      const response = await this.api.get<any[]>(url);
       return response;
     } catch (error: any) {
       console.error('Error al obtener pedidos:', error);
@@ -104,9 +108,9 @@ export class PedidoService {
     }
   }
 
-  async obtenerPagosPedido(idPedido: number): Promise<any[]> {
+  async obtenerPagosPedido(idPedido: number): Promise<any> {
     try {
-      const response = await this.api.get<any[]>(`${this.apiUrl}/${idPedido}/pagos`);
+      const response = await this.api.get<any>(`${this.apiUrl}/${idPedido}/pagos`);
       return response;
     } catch (error: any) {
       console.error('Error al obtener pagos:', error);

@@ -78,7 +78,6 @@ export class MapaEntregaComponent implements OnInit, AfterViewInit, OnChanges, O
 
       // Cuando los tiles se carguen, actualizar el tamaño
       tileLayer.on('load', () => {
-        console.log('Tiles cargados');
         if (this.map) {
           this.map.invalidateSize();
         }
@@ -88,28 +87,24 @@ export class MapaEntregaComponent implements OnInit, AfterViewInit, OnChanges, O
       setTimeout(() => {
         if (this.map) {
           this.map.invalidateSize();
-          console.log('invalidateSize 100ms');
         }
       }, 100);
 
       setTimeout(() => {
         if (this.map) {
           this.map.invalidateSize();
-          console.log('invalidateSize 300ms');
         }
       }, 300);
 
       setTimeout(() => {
         if (this.map) {
           this.map.invalidateSize();
-          console.log('invalidateSize 600ms');
         }
       }, 600);
 
       setTimeout(() => {
         if (this.map) {
           this.map.invalidateSize();
-          console.log('invalidateSize 1000ms');
         }
       }, 1000);
 

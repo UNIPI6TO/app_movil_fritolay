@@ -6,9 +6,33 @@ import { firstValueFrom } from 'rxjs';
 export class ApiService {
   constructor(private http: HttpClient) {}
 
+  // Limpiar objeto: eliminar propiedades undefined, null o vacías
+  private cleanObject(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    const cleaned: any = Array.isArray(obj) ? [] : {};
+    
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        const value = obj[key];
+        // No incluir si es undefined o null
+        if (value !== undefined && value !== null) {
+          if (value !== null && typeof value === 'object') {
+            cleaned[key] = this.cleanObject(value);
+          } else {
+            cleaned[key] = value;
+          }
+        }
+      }
+    }
+    
+    return cleaned;
+  }
+
   async post<T = any>(url: string, body: any): Promise<T> {
     try {
-      return await firstValueFrom(this.http.post<T>(url, body));
+      const cleanedBody = this.cleanObject(body);
+      return await firstValueFrom(this.http.post<T>(url, cleanedBody));
     } catch (err: any) {
       const msg = await this.extractErrorMessage(err, 'Error en la operación');
       try { if (err) (err as any).friendlyMessage = msg; } catch {}
@@ -36,10 +60,6 @@ export class ApiService {
     if (err.status === 0) return 'No se pudo conectar al servidor. Verifique que el backend esté en ejecución y que confíe el certificado HTTPS en el navegador.';
 
     const e = err.error;
-    try {
-      console.log('ApiService.extractErrorMessage - err object:', err);
-      console.log('ApiService.extractErrorMessage - status:', err?.status, 'errorBody:', e, 'typeof errorBody:', typeof e);
-    } catch {}
 
     try {
       if (typeof Blob !== 'undefined' && e instanceof Blob) {

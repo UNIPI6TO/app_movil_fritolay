@@ -20,7 +20,6 @@ export class CarritoModalPage implements OnInit {
     this.cartService.carrito$.subscribe(datos => {
       this.items = datos;
       this.total = this.cartService.getTotal();
-      console.log('Carrito actualizado. Total:', this.total, 'Items:', this.items);
     });
   }
 

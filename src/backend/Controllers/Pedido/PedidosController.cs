@@ -203,6 +203,55 @@ namespace backend.Controllers.Pedido
             return Ok(historial);
         }
 
+        // GET: api/pedidos/{id}
+        // Obtener un pedido específico del usuario por su ID
+        [HttpGet("{id}")]
+        public async Task<ActionResult> ObtenerPedido(int id)
+        {
+            var idUsuarioClaim = User.FindFirst("idCliente");
+            if (idUsuarioClaim == null) return Unauthorized("Token inválido.");
+            int idCliente = int.Parse(idUsuarioClaim.Value);
+
+            var pedido = await _contexto.Pedidos
+                .Where(p => p.IdPedido == id && p.IdCliente == idCliente)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Producto)
+                .Select(p => new
+                {
+                    p.IdPedido,
+                    p.FechaCreacion,
+                    p.Estado,
+                    p.Subtotal,
+                    p.TotalDescuento,
+                    p.TotalImpuestos,
+                    p.TotalPagar,
+                    p.MetodoPago,
+                    p.MontoTotalPagado,
+                    CantidadItems = p.Detalles.Sum(d => d.Cantidad),
+                    ResumenProductos = p.Detalles.Select(d => new
+                    {
+                        d.Producto.Nombre,
+                        d.Cantidad,
+                        d.PrecioUnitarioBase,
+                        d.PorcentajeDescuento,
+                        d.ValorDescuento,
+                        d.PrecioUnitarioConDescuento,
+                        d.PorcentajeImpuesto,
+                        d.ValorImpuesto,
+                        d.PrecioUnitarioFinal,
+                        d.SubtotalLinea,
+                        d.DescuentoTotalLinea,
+                        d.ImpuestoTotalLinea,
+                        d.TotalLinea
+                    })
+                })
+                .FirstOrDefaultAsync();
+
+            if (pedido == null) return NotFound("El pedido no existe o no te pertenece.");
+
+            return Ok(pedido);
+        }
+
         // POST: api/pedidos/registrar-pago
         // Registrar un pago para un pedido
         [HttpPost("registrar-pago")]

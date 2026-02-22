@@ -62,6 +62,13 @@ export class CarritoService {
     }
   }
 
+  // Vaciar completamente el carrito
+  async vaciarCarrito() {
+    this.items = [];
+    await Preferences.remove({ key: 'carrito_compras' });
+    this.carrito.next(this.items);
+  }
+
   getTotal() {
     return this.items.reduce((acc, item) => {
       // Si precioFinal está disponible, usarlo; si no, calcular

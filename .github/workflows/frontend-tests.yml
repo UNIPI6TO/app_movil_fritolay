@@ -187,10 +187,70 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: src/fritolay-app/package-lock.json
 
-    - name: Verificar vulnerabilidades
-      run: npm audit --audit-level=moderate
+    - name: Instalar dependencias
+      run: npm ci
+
+    - name: Verificar vulnerabilidades críticas y altas
+      id: audit
+      run: |
+        echo "### 🔒 Auditoría de Vulnerabilidades - npm audit" >> $GITHUB_STEP_SUMMARY
+        npm audit 2>&1 | tee audit-report.txt
+        AUDIT_RESULT=$?
+        
+        # Extraer información del reporte
+        CRITICAL_COUNT=$(grep -o 'critical' audit-report.txt | wc -l)
+        HIGH_COUNT=$(grep -o 'high' audit-report.txt | wc -l)
+        MODERATE_COUNT=$(grep -o 'moderate' audit-report.txt | wc -l)
+        
+        echo "audit_result=$AUDIT_RESULT" >> $GITHUB_OUTPUT
+        echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+        echo "high=$HIGH_COUNT" >> $GITHUB_OUTPUT
+        echo "moderate=$MODERATE_COUNT" >> $GITHUB_OUTPUT
+        
+        exit 0
       continue-on-error: true
 
+    - name: Comentar auditoría de seguridad en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        header: security-audit
+        message: |
+          ## 🔒 Auditoría de Seguridad - npm audit
+          
+          ### Resumen de Vulnerabilidades
+          - 🔴 **Críticas:** ${{ steps.audit.outputs.critical }}
+          - 🟠 **Altas:** ${{ steps.audit.outputs.high }}
+          - 🟡 **Moderadas:** ${{ steps.audit.outputs.moderate }}
+          
+          <details>
+          <summary>📋 Ver reporte completo</summary>
+          
+          ```
+          $(tail -n 50 audit-report.txt 2>/dev/null || echo "No se encontró reporte")
+          ```
+          
+          **Recomendaciones:**
+          - Para ignorar vulnerabilidades no críticas: `npm audit --audit-level=critical`
+          - Para actualizar paquetes: `npm audit fix` o `npm audit fix --force`
+          - Más información: [npm audit documentation](https://docs.npmjs.com/cli/audit)
+          </details>
+          
+          ---
+          *Auditoría ejecutada para commit: `${{ github.sha }}`*
+
     - name: Verificar dependencias desactualizadas
-      run: npm outdated || true
+      id: outdated
+      run: |
+        echo "### 📦 Dependencias Desactualizadas" >> $GITHUB_STEP_SUMMARY
+        npm outdated 2>&1 | tee outdated-report.txt || true
+        exit 0
+
+    - name: Fallar si hay vulnerabilidades críticas
+      if: steps.audit.outputs.critical != '0'
+      run: |
+        echo "❌ Se encontraron vulnerabilidades CRÍTICAS que deben ser corregidas"
+        exit 1

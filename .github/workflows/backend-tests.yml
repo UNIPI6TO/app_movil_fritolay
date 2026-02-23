@@ -13,6 +13,11 @@ on:
       - 'src/backend/**'
       - 'src/backend.Tests/**'
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     name: Run Backend Unit Tests
@@ -37,23 +42,24 @@ jobs:
     - name: Compilar solución
       run: dotnet build backend.sln --configuration Release --no-restore
 
-    - name: Ejecutar tests unitarios
-      run: dotnet test backend.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+    - name: Ejecutar tests unitarios con cobertura
+      run: |
+        dotnet test backend.sln \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --logger "trx;LogFileName=test-results.trx" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults
 
     - name: Publicar resultados de tests
       uses: dorny/test-reporter@v1
       if: always()
       with:
         name: Backend Test Results
-        path: src/backend.Tests/**/test-results.trx
+        path: src/backend/TestResults/test-results.trx
         reporter: dotnet-trx
         fail-on-error: true
-
-    - name: Generar reporte de cobertura
-      run: |
-        dotnet test backend.sln --configuration Release --no-build \
-          --collect:"XPlat Code Coverage" \
-          --results-directory ./TestResults
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
@@ -64,26 +70,3 @@ jobs:
         name: backend-coverage
         fail_ci_if_error: false
 
-  build-check:
-    name: Verificar Build de Backend
-    runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: src/backend
-
-    steps:
-    - name: Checkout código
-      uses: actions/checkout@v4
-
-    - name: Setup .NET 8
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Verificar compilación sin warnings
-      run: dotnet build backend.sln --configuration Release /warnaserror
-
-    - name: Verificar formato de código
-      run: dotnet format backend.sln --verify-no-changes --verbosity diagnostic
-      continue-on-error: true

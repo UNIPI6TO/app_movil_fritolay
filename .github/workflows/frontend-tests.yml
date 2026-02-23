@@ -198,14 +198,24 @@ jobs:
       run: |
         npm audit 2>&1 | tee audit-report.txt
         
-        # Extraer información del reporte
-        CRITICAL_COUNT=$(grep -ci 'critical' audit-report.txt || echo "0")
-        HIGH_COUNT=$(grep -ci 'high' audit-report.txt || echo "0")
-        MODERATE_COUNT=$(grep -ci 'moderate' audit-report.txt || echo "0")
+        # Extraer información del reporte en formato JSON
+        AUDIT_JSON=$(npm audit --json 2>/dev/null || echo "{}")
         
-        echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
-        echo "high=$HIGH_COUNT" >> $GITHUB_OUTPUT
-        echo "moderate=$MODERATE_COUNT" >> $GITHUB_OUTPUT
+        # Usar jq si está disponible, si no usar grep
+        if command -v jq &> /dev/null; then
+          CRITICAL_COUNT=$(echo "$AUDIT_JSON" | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo "0")
+          HIGH_COUNT=$(echo "$AUDIT_JSON" | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
+          MODERATE_COUNT=$(echo "$AUDIT_JSON" | jq '.metadata.vulnerabilities.moderate // 0' 2>/dev/null || echo "0")
+        else
+          # Fallback con expresiones regulares
+          CRITICAL_COUNT=$(echo "$AUDIT_JSON" | grep -oP '"critical":\K[0-9]+' | head -1 || echo "0")
+          HIGH_COUNT=$(echo "$AUDIT_JSON" | grep -oP '"high":\K[0-9]+' | head -1 || echo "0")
+          MODERATE_COUNT=$(echo "$AUDIT_JSON" | grep -oP '"moderate":\K[0-9]+' | head -1 || echo "0")
+        fi
+        
+        echo "critical=${CRITICAL_COUNT:-0}" >> $GITHUB_OUTPUT
+        echo "high=${HIGH_COUNT:-0}" >> $GITHUB_OUTPUT
+        echo "moderate=${MODERATE_COUNT:-0}" >> $GITHUB_OUTPUT
         
         exit 0
       continue-on-error: true

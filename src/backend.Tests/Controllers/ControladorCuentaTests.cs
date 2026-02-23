@@ -2,11 +2,14 @@ using backend.Controllers.Usuario;
 using backend.Datos;
 using backend.Modelos;
 using backend.Modelos.Dto;
+using backend.Servicios;
 using backend.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
 namespace backend.Tests.Controllers
@@ -32,13 +35,33 @@ namespace backend.Tests.Controllers
                 .Build();
         }
 
+        /// <summary>
+        /// Crea mocks para IServicioEmail e ILogger del ControladorCuenta
+        /// El mock de email está configurado para siempre retornar true (éxito al enviar)
+        /// </summary>
+        private (Mock<IServicioEmail> servicioEmailMock, Mock<ILogger<ControladorCuenta>> loggerMock) CrearMocks()
+        {
+            var servicioEmailMock = new Mock<IServicioEmail>();
+            // Configurar el mock para retornar true en todos los métodos email
+            servicioEmailMock
+                .Setup(s => s.EnviarCodigoRecuperacionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(true);
+            servicioEmailMock
+                .Setup(s => s.EnviarConfirmacionRegistroAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(true);
+            
+            var loggerMock = new Mock<ILogger<ControladorCuenta>>();
+            return (servicioEmailMock, loggerMock);
+        }
+
         // TC-BE-001: Registro de Usuario Exitoso
         [Fact]
         public async Task Registrar_DatosValidos_RegistraUsuarioYDevuelveOk()
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var datosRegistro = new DtoRegistro
             {
@@ -71,7 +94,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var clienteExistente = TestHelper.CrearCliente(cedula: "0123456789");
             contexto.Clientes.Add(clienteExistente);
@@ -99,7 +123,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var clienteExistente = TestHelper.CrearCliente(email: "juan@test.com");
             contexto.Clientes.Add(clienteExistente);
@@ -127,7 +152,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var datosRegistro = new DtoRegistro
             {
@@ -155,7 +181,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword("Password123!");
             var cliente = TestHelper.CrearCliente(
@@ -191,7 +218,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword("Password123!");
             var cliente = TestHelper.CrearCliente(
@@ -219,7 +247,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var datosLogin = new DtoLogin
             {
@@ -240,7 +269,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword("Password123!");
             var cliente = TestHelper.CrearCliente(
@@ -282,7 +312,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword("Password123!");
             var cliente = TestHelper.CrearCliente(email: "juan@test.com", passwordHash: passwordHash);
@@ -319,7 +350,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var cliente = TestHelper.CrearCliente(email: "juan@test.com");
             contexto.Clientes.Add(cliente);
@@ -349,7 +381,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var solicitud = new DtoRecuperar
             {
@@ -369,7 +402,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var cliente = TestHelper.CrearCliente(email: "juan@test.com");
             cliente.CodigoRecuperacion = "123456";
@@ -402,7 +436,8 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             using var contexto = TestHelper.CrearContextoEnMemoria();
-            var controlador = new ControladorCuenta(contexto, _configuracion);
+            var (servicioEmailMock, loggerMock) = CrearMocks();
+            var controlador = new ControladorCuenta(contexto, _configuracion, servicioEmailMock.Object, loggerMock.Object);
 
             var cliente = TestHelper.CrearCliente(email: "juan@test.com");
             cliente.CodigoRecuperacion = "123456";

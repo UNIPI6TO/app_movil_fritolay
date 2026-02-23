@@ -11,6 +11,11 @@ on:
     paths:
       - 'src/fritolay-app/**'
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     name: Run Frontend Unit Tests
@@ -38,30 +43,16 @@ jobs:
       run: npm run lint
       continue-on-error: true
 
-    - name: Ejecutar tests unitarios
+    - name: Ejecutar tests con cobertura
       run: npm run test:ci
       env:
         CHROME_BIN: /usr/bin/google-chrome-stable
-
-    - name: Ejecutar tests con cobertura
-      run: npm run test:coverage
-      env:
-        CHROME_BIN: /usr/bin/google-chrome-stable
-
-    - name: Publicar resultados de tests
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
-        name: Frontend Test Results
-        path: src/fritolay-app/coverage/junit.xml
-        reporter: jest-junit
-        fail-on-error: false
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
       if: always()
       with:
-        files: ./src/fritolay-app/coverage/lcov.info
+        files: ./src/fritolay-app/coverage/app/lcov.info
         flags: frontend
         name: frontend-coverage
         fail_ci_if_error: false
@@ -70,7 +61,7 @@ jobs:
       uses: romeovs/lcov-reporter-action@v0.3.1
       if: github.event_name == 'pull_request'
       with:
-        lcov-file: ./src/fritolay-app/coverage/lcov.info
+        lcov-file: ./src/fritolay-app/coverage/app/lcov.info
         github-token: ${{ secrets.GITHUB_TOKEN }}
         delete-old-comments: true
 

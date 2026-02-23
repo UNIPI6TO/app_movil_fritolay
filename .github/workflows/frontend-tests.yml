@@ -196,16 +196,13 @@ jobs:
     - name: Verificar vulnerabilidades críticas y altas
       id: audit
       run: |
-        echo "### 🔒 Auditoría de Vulnerabilidades - npm audit" >> $GITHUB_STEP_SUMMARY
         npm audit 2>&1 | tee audit-report.txt
-        AUDIT_RESULT=$?
         
         # Extraer información del reporte
-        CRITICAL_COUNT=$(grep -o 'critical' audit-report.txt | wc -l)
-        HIGH_COUNT=$(grep -o 'high' audit-report.txt | wc -l)
-        MODERATE_COUNT=$(grep -o 'moderate' audit-report.txt | wc -l)
+        CRITICAL_COUNT=$(grep -ci 'critical' audit-report.txt || echo "0")
+        HIGH_COUNT=$(grep -ci 'high' audit-report.txt || echo "0")
+        MODERATE_COUNT=$(grep -ci 'moderate' audit-report.txt || echo "0")
         
-        echo "audit_result=$AUDIT_RESULT" >> $GITHUB_OUTPUT
         echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
         echo "high=$HIGH_COUNT" >> $GITHUB_OUTPUT
         echo "moderate=$MODERATE_COUNT" >> $GITHUB_OUTPUT
@@ -213,15 +210,27 @@ jobs:
         exit 0
       continue-on-error: true
 
+    - name: Preparar reporte de auditoría
+      if: always()
+      id: prep_audit
+      run: |
+        # Copiar reporte a directorio accesible
+        cp audit-report.txt /tmp/audit-report.txt
+        # Preparar contenido para embedding
+        REPORT_CONTENT=$(cat audit-report.txt)
+        echo "AUDIT_REPORT<<EOF_AUDIT" >> $GITHUB_ENV
+        echo "$REPORT_CONTENT" >> $GITHUB_ENV
+        echo "EOF_AUDIT" >> $GITHUB_ENV
+
     - name: Comentar auditoría de seguridad en PR
       uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' && always()
       with:
         header: security-audit
         message: |
           ## 🔒 Auditoría de Seguridad - npm audit
           
-          ### Resumen de Vulnerabilidades
+          ### 📊 Resumen de Vulnerabilidades
           - 🔴 **Críticas:** ${{ steps.audit.outputs.critical }}
           - 🟠 **Altas:** ${{ steps.audit.outputs.high }}
           - 🟡 **Moderadas:** ${{ steps.audit.outputs.moderate }}
@@ -230,17 +239,33 @@ jobs:
           <summary>📋 Ver reporte completo</summary>
           
           ```
-          $(tail -n 50 audit-report.txt 2>/dev/null || echo "No se encontró reporte")
+          ${{ env.AUDIT_REPORT }}
           ```
           
-          **Recomendaciones:**
+          </details>
+          
+          ### 💡 Recomendaciones
           - Para ignorar vulnerabilidades no críticas: `npm audit --audit-level=critical`
           - Para actualizar paquetes: `npm audit fix` o `npm audit fix --force`
           - Más información: [npm audit documentation](https://docs.npmjs.com/cli/audit)
-          </details>
           
           ---
           *Auditoría ejecutada para commit: `${{ github.sha }}`*
+
+    - name: Mostrar reporte de auditoría en logs
+      if: always()
+      run: |
+        echo "## 🔒 Reporte de Seguridad - npm audit" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Vulnerabilidades Detectadas:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Críticas:** ${{ steps.audit.outputs.critical }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Altas:** ${{ steps.audit.outputs.high }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Moderadas:** ${{ steps.audit.outputs.moderate }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Reporte Completo:" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        cat audit-report.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     - name: Verificar dependencias desactualizadas
       id: outdated

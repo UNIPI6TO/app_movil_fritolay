@@ -21,14 +21,14 @@ Esta guía proporciona instrucciones completas para ejecutar, mantener y extende
 ### Instalación
 
 ```powershell
-# Navegar al proyecto de pruebas
-cd src/backend.Tests
+# Navegar al directorio de la solución
+cd src/backend
 
 # Restaurar dependencias
-dotnet restore
+dotnet restore backend.sln
 
-# Compilar proyecto
-dotnet build
+# Compilar solución
+dotnet build backend.sln
 ```
 
 ---
@@ -125,16 +125,20 @@ start ./TestResults/coveragereport/index.html
 ## 🏗️ Estructura del Proyecto
 
 ```
-backend.Tests/
-├── Controllers/                 # Pruebas de controladores
-│   ├── ControladorCuentaTests.cs      (13 tests) ✅
-│   ├── ControladorProductoTests.cs    (Pendiente)
-│   └── ControladorPedidoTests.cs      (Pendiente)
-├── Integration/                 # Pruebas de integración
-│   └── (Pendiente)
-├── Helpers/                     # Utilidades de prueba
-│   └── TestHelper.cs            ✅
-└── backend.Tests.csproj         # Configuración del proyecto
+backend/
+├── Controllers/
+├── Modelos/  
+├── Datos/
+├── Tests/                       # ⭐ Proyecto de pruebas
+│   ├── Controllers/             # Pruebas de controladores
+│   │   ├── ControladorCuentaTests.cs      (13 tests) ✅
+│   │   ├── ControladorProductoTests.cs    (Pendiente)
+│   │   └── ControladorPedidoTests.cs      (Pendiente)
+│   ├── Integration/             # Pruebas de integración
+│   │   └── (Pendiente)
+│   ├── Helpers/                 # Utilidades de prueba
+│   │   └── TestHelper.cs        ✅
+│   └── backend.Tests.csproj     # Configuración del proyecto
 ```
 
 ---
@@ -304,7 +308,7 @@ public async Task MiPruebaDeIntegracion()
     "preLaunchTask": "build",
     "program": "dotnet",
     "args": ["test"],
-    "cwd": "${workspaceFolder}/src/backend.Tests",
+    "cwd": "${workspaceFolder}/src/backend/Tests",
     "stopAtEntry": false
 }
 ```
@@ -431,16 +435,16 @@ jobs:
         dotnet-version: '8.0.x'
     
     - name: Restore dependencies
-      run: dotnet restore src/backend.Tests
+      run: dotnet restore src/backend/Tests
     
-    - name: Build
-      run: dotnet build src/backend.Tests --no-restore
+    - name: Build Tests
+      run: dotnet build src/backend/Tests --no-restore
     
     - name: Run Tests
-      run: dotnet test src/backend.Tests --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test src/backend/Tests --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
     
     - name: Generate Coverage
-      run: dotnet test src/backend.Tests --collect:"XPlat Code Coverage" --results-directory ./coverage
+      run: dotnet test src/backend/Tests --collect:"XPlat Code Coverage" --results-directory ./coverage
     
     - name: Publish Test Results
       if: always()
@@ -470,19 +474,19 @@ steps:
   displayName: 'Restore'
   inputs:
     command: 'restore'
-    projects: 'src/backend.Tests/*.csproj'
+    projects: 'src/backend/Tests/*.csproj'
 
 - task: DotNetCoreCLI@2
   displayName: 'Build'
   inputs:
     command: 'build'
-    projects: 'src/backend.Tests/*.csproj'
+    projects: 'src/backend/Tests/*.csproj'
 
 - task: DotNetCoreCLI@2
   displayName: 'Run Tests'
   inputs:
     command: 'test'
-    projects: 'src/backend.Tests/*.csproj'
+    projects: 'src/backend/Tests/*.csproj'
     arguments: '--configuration Release --collect:"XPlat Code Coverage"'
     publishTestResults: true
 

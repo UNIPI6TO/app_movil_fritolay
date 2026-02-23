@@ -48,14 +48,47 @@ jobs:
       id: tests
       run: |
         npm run test:ci 2>&1 | tee test-output.txt
-        echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+        TEST_EXIT_CODE=${PIPESTATUS[0]}
+        echo "exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+        exit $TEST_EXIT_CODE
       env:
         CHROME_BIN: /usr/bin/google-chrome-stable
       continue-on-error: true
 
+    - name: Extraer resultados de tests
+      if: always()
+      id: test_results
+      run: |
+        if [ -f test-output.txt ]; then
+          # Extraer resumen de tests
+          SUMMARY=$(grep -A 5 "TOTAL:" test-output.txt || echo "No se encontró resumen")
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extraer cobertura
+          COVERAGE=$(grep -A 10 "Coverage summary" test-output.txt || echo "")
+          echo "coverage<<EOF" >> $GITHUB_OUTPUT
+          echo "$COVERAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extraer últimas líneas completas
+          DETAILS=$(tail -n 40 test-output.txt)
+          echo "details<<EOF" >> $GITHUB_OUTPUT
+          echo "$DETAILS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Mostrar en el log del workflow
+          echo "### 📊 Resumen de Tests ###"
+          echo "$SUMMARY"
+          echo ""
+          echo "### 📈 Cobertura de Código ###"
+          echo "$COVERAGE"
+        fi
+
     - name: Comentar resultados de tests en PR
       uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' && always()
       with:
         header: frontend-test-results
         message: |
@@ -63,16 +96,26 @@ jobs:
           
           **Status**: ${{ steps.tests.outputs.exit_code == '0' && '✅ Todos los tests pasaron' || '❌ Algunos tests fallaron' }}
           
+          ### 📊 Resumen de Tests
+          ```
+          ${{ steps.test_results.outputs.summary }}
+          ```
+          
+          ### 📈 Cobertura de Código
+          ```
+          ${{ steps.test_results.outputs.coverage }}
+          ```
+          
           <details>
-          <summary>📊 Ver detalles de ejecución</summary>
+          <summary>🔍 Ver detalles completos de ejecución</summary>
           
           ```
-          $(cat test-output.txt | tail -n 30)
+          ${{ steps.test_results.outputs.details }}
           ```
           </details>
           
           ---
-          *Workflow ejecutado en commit: ${{ github.sha }}*
+          *Workflow ejecutado en commit: `${{ github.sha }}`*
 
     - name: Verificar que los tests pasaron
       if: steps.tests.outputs.exit_code != '0'

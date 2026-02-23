@@ -2,6 +2,7 @@ name: Frontend Tests (Angular/Ionic)
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ main ]
     paths:
       - 'src/fritolay-app/**'
@@ -44,9 +45,38 @@ jobs:
       continue-on-error: true
 
     - name: Ejecutar tests con cobertura
-      run: npm run test:ci
+      id: tests
+      run: |
+        npm run test:ci 2>&1 | tee test-output.txt
+        echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
       env:
         CHROME_BIN: /usr/bin/google-chrome-stable
+      continue-on-error: true
+
+    - name: Comentar resultados de tests en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        header: frontend-test-results
+        message: |
+          ## 🧪 Resultados de Tests Frontend
+          
+          **Status**: ${{ steps.tests.outputs.exit_code == '0' && '✅ Todos los tests pasaron' || '❌ Algunos tests fallaron' }}
+          
+          <details>
+          <summary>📊 Ver detalles de ejecución</summary>
+          
+          ```
+          $(cat test-output.txt | tail -n 30)
+          ```
+          </details>
+          
+          ---
+          *Workflow ejecutado en commit: ${{ github.sha }}*
+
+    - name: Verificar que los tests pasaron
+      if: steps.tests.outputs.exit_code != '0'
+      run: exit 1
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4

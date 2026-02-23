@@ -2,6 +2,7 @@ name: Backend Tests (.NET)
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ main ]
     paths:
       - 'src/backend/**'
@@ -43,6 +44,7 @@ jobs:
       run: dotnet build backend.sln --configuration Release --no-restore
 
     - name: Ejecutar tests unitarios con cobertura
+      id: tests
       run: |
         dotnet test backend.sln \
           --configuration Release \
@@ -50,7 +52,34 @@ jobs:
           --verbosity normal \
           --logger "trx;LogFileName=test-results.trx" \
           --collect:"XPlat Code Coverage" \
-          --results-directory ./TestResults
+          --results-directory ./TestResults 2>&1 | tee test-output.txt
+        echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+      continue-on-error: true
+
+    - name: Comentar resultados de tests en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        header: backend-test-results
+        message: |
+          ## 🧪 Resultados de Tests Backend
+          
+          **Status**: ${{ steps.tests.outputs.exit_code == '0' && '✅ Todos los tests pasaron' || '❌ Algunos tests fallaron' }}
+          
+          <details>
+          <summary>📊 Ver detalles de ejecución</summary>
+          
+          ```
+          $(cat test-output.txt | tail -n 40)
+          ```
+          </details>
+          
+          ---
+          *Workflow ejecutado en commit: ${{ github.sha }}*
+
+    - name: Verificar que los tests pasaron
+      if: steps.tests.outputs.exit_code != '0'
+      run: exit 1
 
     - name: Publicar resultados de tests
       uses: dorny/test-reporter@v1

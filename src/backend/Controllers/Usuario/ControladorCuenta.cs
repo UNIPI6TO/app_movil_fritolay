@@ -7,6 +7,7 @@ using System.Text;
 using backend.Datos;
 using backend.Modelos;
 using backend.Modelos.Dto;
+using backend.Servicios;
 using BCrypt.Net;
 
 namespace backend.Controllers.Usuario
@@ -17,11 +18,19 @@ namespace backend.Controllers.Usuario
     {
         private readonly ContextoBaseDatos _contexto;
         private readonly IConfiguration _configuracion;
+        private readonly IServicioEmail _servicioEmail;
+        private readonly ILogger<ControladorCuenta> _logger;
 
-        public ControladorCuenta(ContextoBaseDatos contexto, IConfiguration configuracion)
+        public ControladorCuenta(
+            ContextoBaseDatos contexto, 
+            IConfiguration configuracion,
+            IServicioEmail servicioEmail,
+            ILogger<ControladorCuenta> logger)
         {
             _contexto = contexto;
             _configuracion = configuracion;
+            _servicioEmail = servicioEmail;
+            _logger = logger;
         }
 
         // RF-001: Registro de Cliente (Actualizado con Cédula)
@@ -49,7 +58,19 @@ namespace backend.Controllers.Usuario
             _contexto.Clientes.Add(nuevoCliente);
             await _contexto.SaveChangesAsync();
 
-            return Ok(new { mensaje = "Usuario registrado exitosamente." });
+            // Enviar email de confirmación de registro
+            var emailEnviado = await _servicioEmail.EnviarConfirmacionRegistroAsync(
+                datos.CorreoElectronico, 
+                datos.NombreCompleto
+            );
+
+            if (!emailEnviado)
+            {
+                _logger.LogWarning($"Email de confirmación no pudo ser enviado a {datos.CorreoElectronico}");
+                // No bloqueamos el registro si falla el email, solo registramos la advertencia
+            }
+
+            return Ok(new { mensaje = "Usuario registrado exitosamente. Verifica tu correo." });
         }
 
         // RF-002: Inicio de Sesión
@@ -91,9 +112,21 @@ namespace backend.Controllers.Usuario
 
             await _contexto.SaveChangesAsync();
 
-            // AQUÍ: Deberías llamar a tu servicio de Email real.
-            // Por ahora simulamos devolviéndolo (solo para pruebas)
-            return Ok(new { mensaje = "Código enviado tiene una validez de 5 minutos", codigoDebug = codigo });
+            // Enviar código de recuperación por email
+            var emailEnviado = await _servicioEmail.EnviarCodigoRecuperacionAsync(
+                datos.CorreoElectronico,
+                cliente.NombreCompleto,
+                codigo
+            );
+
+            if (!emailEnviado)
+            {
+                _logger.LogWarning($"Error al enviar código de recuperación a {datos.CorreoElectronico}");
+                return StatusCode(500, new { mensaje = "Error al enviar el código. Por favor, intenta nuevamente." });
+            }
+
+            _logger.LogInformation($"Código de recuperación enviado a {datos.CorreoElectronico}");
+            return Ok(new { mensaje = "Código de recuperación enviado a tu correo. Tiene una validez de 5 minutos." });
         }
 
         // RF-012: Restablecer Contraseña

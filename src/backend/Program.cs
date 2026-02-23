@@ -1,4 +1,5 @@
 using backend.Datos;
+using backend.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -36,6 +37,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Registrar servicio de Email
+builder.Services.AddScoped<IServicioEmail, ServicioEmail>();
+
 // Configurar CORS para desarrollo
 builder.Services.AddCors(opciones =>
 {

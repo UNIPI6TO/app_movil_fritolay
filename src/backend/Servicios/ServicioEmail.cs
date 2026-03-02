@@ -32,8 +32,16 @@ namespace backend.Servicios
             _contrasenaSmtp = _configuracion["Smtp:Contrasena"] ?? throw new InvalidOperationException("Falta Smtp:Contrasena");
             _usarSsl = bool.Parse(_configuracion["Smtp:UsarSSL"] ?? "true");
 
-            _logger.LogInformation($"Servicio de Email inicializado: {_emailOrigen} via {_servidorSmtp}:{_puertoSmtp}");
+            _logger.LogInformation("Servicio de Email inicializado");
         }
+
+        /// <summary>
+        /// Sanitiza un valor de entrada para uso seguro en logs (elimina caracteres de salto de línea).
+        /// </summary>
+        private static string SanitizarParaLog(string? valor) =>
+            valor?.Replace("\r", string.Empty).Replace("\n", string.Empty) ?? string.Empty;
+
+        // ...existing code...
 
         /// <summary>
         /// Envía código de recuperación de contraseña
@@ -42,7 +50,7 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation($"Iniciando envío de código de recuperación a {correoDestino}");
+                _logger.LogInformation($"Iniciando envío de código de recuperación");
 
                 var asunto = "🔐 Código de Recuperación - Frito Lay";
                 
@@ -101,7 +109,7 @@ namespace backend.Servicios
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error al enviar código de recuperación: {ex.Message}");
+                _logger.LogError("Error al enviar código de recuperación: "+ex.Message);
                 return false;
             }
         }
@@ -113,10 +121,8 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation($"Iniciando envío de confirmación de registro a {correoDestino}");
-
+                _logger.LogInformation("Iniciando envío de confirmación de registro ");
                 var asunto = "✅ ¡Bienvenido a Frito Lay!";
-                
                 var contenidoHtml = $@"
                     <!DOCTYPE html>
                     <html>
@@ -178,7 +184,7 @@ namespace backend.Servicios
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error al enviar confirmación de registro: {ex.Message}");
+                _logger.LogError("Error al enviar confirmación de registro: "+ex.Message);
                 return false;
             }
         }
@@ -194,13 +200,13 @@ namespace backend.Servicios
                 _logger.LogInformation($"Conectando a servidor SMTP: {_servidorSmtp}:{_puertoSmtp}");
 
                 cliente = new SmtpClient(_servidorSmtp, _puertoSmtp);
-                
+
                 // Configuración SMTP mejorada
                 cliente.EnableSsl = _usarSsl;
                 cliente.UseDefaultCredentials = false;
                 cliente.Credentials = new NetworkCredential(_usuarioSmtp, _contrasenaSmtp);
                 cliente.DeliveryMethod = SmtpDeliveryMethod.Network;
-                
+
                 // Timeouts
                 cliente.Timeout = 10000;
 
@@ -214,24 +220,16 @@ namespace backend.Servicios
 
                 mailMessage.To.Add(new MailAddress(correoDestino, nombreDestino));
 
-                _logger.LogInformation($"Enviando email a {correoDestino}...");
+
                 await cliente.SendMailAsync(mailMessage);
 
-                _logger.LogInformation($"✅ Email enviado exitosamente a {correoDestino}");
+                _logger.LogInformation("Email enviado exitosamente");
                 return true;
-            }
-            catch (SmtpException smtpEx)
-            {
-                _logger.LogError($"❌ Error SMTP: {smtpEx.StatusCode} - {smtpEx.Message}");
-                _logger.LogError($"   Servidor: {_servidorSmtp}:{_puertoSmtp}");
-                _logger.LogError($"   Usuario: {_usuarioSmtp}");
-                _logger.LogError($"   SSL: {_usarSsl}");
-                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"❌ Error general al enviar email: {ex.Message}");
-                _logger.LogError($"   StackTrace: {ex.StackTrace}");
+                _logger.LogError("Error general al enviar email: "+ex.Message);
+                _logger.LogError("   StackTrace: "+ ex.StackTrace);
                 return false;
             }
             finally

@@ -32,7 +32,7 @@ namespace backend.Servicios
             _contrasenaSmtp = _configuracion["Smtp:Contrasena"] ?? throw new InvalidOperationException("Falta Smtp:Contrasena");
             _usarSsl = bool.Parse(_configuracion["Smtp:UsarSSL"] ?? "true");
 
-            _logger.LogInformation($"Servicio de Email inicializado: {_emailOrigen} via {_servidorSmtp}:{_puertoSmtp}");
+            _logger.LogInformation("Servicio de Email inicializado: "+_emailOrigen+" via "+_servidorSmtp+":"+_puertoSmtp);
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace backend.Servicios
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error al enviar código de recuperación: {ex.Message}");
+                _logger.LogError("Error al enviar código de recuperación: "+ex.Message);
                 return false;
             }
         }
@@ -121,7 +121,7 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation($"Iniciando envío de confirmación de registro a {SanitizarParaLog(correoDestino)}");
+                _logger.LogInformation("Iniciando envío de confirmación de registro a "+SanitizarParaLog(correoDestino));
                 var asunto = "✅ ¡Bienvenido a Frito Lay!";
                 var contenidoHtml = $@"
                     <!DOCTYPE html>
@@ -184,7 +184,7 @@ namespace backend.Servicios
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error al enviar confirmación de registro: {ex.Message}");
+                _logger.LogError("Error al enviar confirmación de registro: "+ex.Message);
                 return false;
             }
         }
@@ -220,16 +220,16 @@ namespace backend.Servicios
 
                 mailMessage.To.Add(new MailAddress(correoDestino, nombreDestino));
 
-                _logger.LogInformation($"Enviando email a {SanitizarParaLog(correoDestino)}...");
+                _logger.LogInformation("Enviando email a "+SanitizarParaLog(correoDestino)+"...");
                 await cliente.SendMailAsync(mailMessage);
 
-                _logger.LogInformation($"✅ Email enviado exitosamente a {SanitizarParaLog(correoDestino)}");
+                _logger.LogInformation("Email enviado exitosamente a " + SanitizarParaLog(correoDestino));
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"❌ Error general al enviar email: {ex.Message}");
-                _logger.LogError($"   StackTrace: {ex.StackTrace}");
+                _logger.LogError("Error general al enviar email: "+ex.Message);
+                _logger.LogError("   StackTrace: "+ ex.StackTrace);
                 return false;
             }
             finally

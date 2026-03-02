@@ -3,13 +3,13 @@ name: Backend Tests (.NET)
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ main ]
+    branches: [ develop ]
     paths:
       - 'src/backend/**'
       - 'src/backend.Tests/**'
       - '.github/workflows/backend-tests.yml'
   push:
-    branches: [ main ]
+    branches: [ develop ]
     paths:
       - 'src/backend/**'
       - 'src/backend.Tests/**'

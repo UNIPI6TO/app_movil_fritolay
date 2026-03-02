@@ -58,29 +58,6 @@ endpoints para:
 - **Claims JWT:** El Token ahora incluye la cédula encriptada dentro del payload.
 ---
 
-## [1.1.0-pre.1] - 2026-02-22
-### Agregado
-- **Gestión de Pedidos del Usuario:** Nueva página "Mis Pedidos" que permite visualizar el historial de pedidos creados.
-- **Vista Detallada de Pedido:** Modal interactivo que muestra detalles completos del pedido incluyendo productos, precios, descuentos, impuestos y totales.
-- **Limpieza Automática de Carrito:** Al finalizar la creación de un pedido, se vacía completamente el carrito en memoria y en Preferences.
-- **Limpieza de Preferencias:** Se eliminan todas las preferencias relacionadas al checkout después de crear un pedido exitosamente.
-- **Nueva Interfaz en Backend:** Endpoint GET `api/ControladorPedidos/{id}` para obtener detalles de un pedido específico.
-- **Método vaciarCarrito():** Nuevo método en CarritoService para limpiar completamente el carrito.
-
-### Modificado
-- **Validación de Pedidos:** Corrección en la validación de `ReferenciaTransferencia` - ahora el campo se envía como espacio en blanco por defecto cuando el método de pago no es Transferencia.
-- **Limpieza de ApiService:** Se agregó método `cleanObject()` para eliminar propiedades `undefined` y `null` antes de enviar requests al backend.
-- **Manejo de Errores:** Mejora en la extracción y reporte de errores de validación desde el backend.
-- **Registro de Pago Automático:** Implementación mejorada del registro automático de pagos solo para método de pago "Tarjeta".
-
-### Removido
-- **Console Logs de Debugging:** Se eliminaron todos los `console.log()` de debugging. Ahora solo se registran errores con `console.error()`.
-
-### Seguridad
-- **Pago Condicional:** El registro de pago se realiza automáticamente solo para pagos con Tarjeta. Efectivo y Transferencia quedan con estado "Pago Pendiente".
-
----
-
 ## [1.0.0] - 2026-01-27
 ### Agregado
 - **Documentación de Auditoría:** Se incluyeron los archivos de Auditoría Física (PCA) y Funcional (RFA) para validación de calidad.
@@ -132,3 +109,27 @@ endpoints para:
 - **Identidad Legal:** Se añadió el campo `Cedula` (string, required) en la entidad `Cliente`.
 - **DTOs:** Se actualizó `DtoRegistro` para requerir la cédula al crear cuenta.
 - **Claims JWT:** El Token ahora incluye la cédula encriptada dentro del payload.
+
+
+## [1.1.0-pre.1] - 2026-02-22
+### Agregado
+- **Gestión de Pedidos del Usuario:** Nueva página "Mis Pedidos" que permite visualizar el historial de pedidos creados.
+- **Vista Detallada de Pedido:** Modal interactivo que muestra detalles completos del pedido incluyendo productos, precios, descuentos, impuestos y totales.
+- **Limpieza Automática de Carrito:** Al finalizar la creación de un pedido, se vacía completamente el carrito en memoria y en Preferences.
+- **Limpieza de Preferencias:** Se eliminan todas las preferencias relacionadas al checkout después de crear un pedido exitosamente.
+- **Nueva Interfaz en Backend:** Endpoint GET `api/ControladorPedidos/{id}` para obtener detalles de un pedido específico.
+- **Método vaciarCarrito():** Nuevo método en CarritoService para limpiar completamente el carrito.
+
+### Modificado
+- **Validación de Pedidos:** Corrección en la validación de `ReferenciaTransferencia` - ahora el campo se envía como espacio en blanco por defecto cuando el método de pago no es Transferencia.
+- **Limpieza de ApiService:** Se agregó método `cleanObject()` para eliminar propiedades `undefined` y `null` antes de enviar requests al backend.
+- **Manejo de Errores:** Mejora en la extracción y reporte de errores de validación desde el backend.
+- **Registro de Pago Automático:** Implementación mejorada del registro automático de pagos solo para método de pago "Tarjeta".
+
+### Removido
+- **Console Logs de Debugging:** Se eliminaron todos los `console.log()` de debugging. Ahora solo se registran errores con `console.error()`.
+
+### Seguridad
+- **Pago Condicional:** El registro de pago se realiza automáticamente solo para pagos con Tarjeta. Efectivo y Transferencia quedan con estado "Pago Pendiente".
+
+---

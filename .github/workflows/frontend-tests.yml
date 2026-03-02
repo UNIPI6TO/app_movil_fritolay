@@ -3,12 +3,12 @@ name: Frontend Tests (Angular/Ionic)
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ main ]
+    branches: [ develop ]
     paths:
       - 'src/fritolay-app/**'
       - '.github/workflows/frontend-tests.yml'
   push:
-    branches: [ main ]
+    branches: [ develop ]
     paths:
       - 'src/fritolay-app/**'
 

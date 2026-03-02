@@ -1,0 +1,41 @@
+name: Validar el WorkFlow
+
+on:
+  pull_request:
+    branches:
+      - main
+      - release
+
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  validate-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar Origen y Destino
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SOURCE: ${{ github.head_ref }}
+          TARGET: ${{ github.base_ref }}
+        run: |
+          # 1. Validación: Solo 'release' -> 'main'
+          if [[ "$TARGET" == "main" && "$SOURCE" != "release" ]]; then
+            MSG="❌ **Error de Flujo:** No puedes hacer un merge directo a \`main\` desde \`$SOURCE\`. Solo se permiten Pull Requests desde la rama \`release\`."
+            gh pr comment $PR_NUMBER --body "$MSG"
+            gh pr close $PR_NUMBER
+            exit 1
+          fi
+
+          # 2. Validación: Solo 'develop' -> 'release'
+          if [[ "$TARGET" == "release" && "$SOURCE" != "develop" ]]; then
+            MSG="❌ **Error de Flujo:** Solo se permiten Pull Requests hacia \`release\` desde la rama \`develop\`. (Origen actual: \`$SOURCE\`)."
+            gh pr comment $PR_NUMBER --body "$MSG"
+            gh pr close $PR_NUMBER
+            exit 1
+          fi
+
+          echo "✅ El flujo de ramas es correcto."

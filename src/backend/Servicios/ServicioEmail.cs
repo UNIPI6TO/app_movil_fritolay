@@ -41,59 +41,7 @@ namespace backend.Servicios
         private static string SanitizarParaLog(string? valor) =>
             valor?.Replace("\r", string.Empty).Replace("\n", string.Empty) ?? string.Empty;
 
-        /// <summary>
-        /// Redacta parcialmente un correo electrónico para uso seguro en logs
-        /// (muestra solo el primer carácter del usuario y el dominio completo).
-        /// </summary>
-        /// <param name="correo">Correo electrónico original.</param>
-        /// <returns>Correo redactado y sanitizado para logs.</returns>
-        private static string RedactarCorreoParaLog(string? correo)
-        {
-            if (string.IsNullOrWhiteSpace(correo))
-            {
-                return string.Empty;
-            }
-
-            var partes = correo.Split('@');
-            if (partes.Length != 2 || string.IsNullOrEmpty(partes[0]))
-            {
-                return SanitizarParaLog("***");
-            }
-
-            var usuario = partes[0];
-            var dominio = partes[1];
-
-            var visible = usuario[0];
-            var redactado = $"{visible}***@{dominio}";
-            return SanitizarParaLog(redactado);
-        }
-
-        /// <summary>
-        /// Redacta parcialmente un correo electrónico para uso seguro en logs.
-        /// </summary>
-        /// <param name="correo">Correo electrónico original.</param>
-        /// <returns>Correo redactado (por ejemplo u***@dominio.com) o cadena vacía si es nulo o vacío.</returns>
-        private static string RedactarCorreoParaLog(string? correo)
-        {
-            if (string.IsNullOrWhiteSpace(correo))
-            {
-                return string.Empty;
-            }
-
-            var limpiado = SanitizarParaLog(correo);
-            var partes = limpiado.Split('@');
-            if (partes.Length != 2 || string.IsNullOrEmpty(partes[0]))
-            {
-                return "***";
-            }
-
-            var usuario = partes[0];
-            var dominio = partes[1];
-
-            // Mostrar solo el primer carácter del usuario para facilitar la correlación.
-            var visible = usuario[0];
-            return $"{visible}***@{dominio}";
-        }
+        // ...existing code...
 
         /// <summary>
         /// Envía código de recuperación de contraseña
@@ -102,7 +50,7 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation("Iniciando envío de código de recuperación.");
+                _logger.LogInformation($"Iniciando envío de código de recuperación a {SanitizarParaLog(correoDestino)}");
 
                 var asunto = "🔐 Código de Recuperación - Frito Lay";
                 
@@ -174,9 +122,7 @@ namespace backend.Servicios
             try
             {
                 _logger.LogInformation($"Iniciando envío de confirmación de registro a {SanitizarParaLog(correoDestino)}");
-
                 var asunto = "✅ ¡Bienvenido a Frito Lay!";
-                _logger.LogInformation($"Iniciando envío de confirmación de registro a {RedactarCorreoParaLog(correoDestino)}");
                 var contenidoHtml = $@"
                     <!DOCTYPE html>
                     <html>
@@ -277,10 +223,8 @@ namespace backend.Servicios
                 _logger.LogInformation($"Enviando email a {SanitizarParaLog(correoDestino)}...");
                 await cliente.SendMailAsync(mailMessage);
 
-                _logger.LogInformation($"Enviando email a {RedactarCorreoParaLog(correoDestino)}...");
+                _logger.LogInformation($"✅ Email enviado exitosamente a {SanitizarParaLog(correoDestino)}");
                 return true;
-            }
-                _logger.LogInformation($"✅ Email enviado exitosamente a {RedactarCorreoParaLog(correoDestino)}");
             {
                 _logger.LogError($"❌ Error SMTP: {smtpEx.StatusCode} - {smtpEx.Message}");
                 _logger.LogError($"   Servidor: {_servidorSmtp}:{_puertoSmtp}");

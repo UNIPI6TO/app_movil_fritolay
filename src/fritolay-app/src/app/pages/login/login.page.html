@@ -1,0 +1,27 @@
+<ion-content class="bg-primary">
+  <div class="header-container">
+    <img src="https://www.fritolay.com/sites/fritolay.com/themes/fritolay/img/logo.png" width="120">
+  </div>
+  
+  <div class="card-login">
+    <h2>Bienvenido</h2>
+    <ion-item lines="none" class="input-rounded">
+      <ion-icon name="mail" slot="start"></ion-icon>
+      <ion-input [(ngModel)]="email" placeholder="Correo"></ion-input>
+    </ion-item>
+    
+    <ion-item lines="none" class="input-rounded">
+      <ion-icon name="lock-closed" slot="start"></ion-icon>
+      <ion-input [(ngModel)]="pass" type="password" placeholder="Contraseña"></ion-input>
+    </ion-item>
+    <ion-button expand="block" (click)="login()" color="primary" class="btn-login" [disabled]="!email || !pass || isLoading">
+      <ng-container *ngIf="!isLoading">INGRESAR</ng-container>
+      <ng-container *ngIf="isLoading">Cargando...</ng-container>
+    </ion-button>
+    <div class="login-actions">
+      <ion-button fill="clear" size="small" (click)="router.navigate(['/registro'])">Registrarse</ion-button>
+      <ion-button fill="clear" size="small" (click)="router.navigate(['/recuperar'])">Recuperar contraseña</ion-button>
+    </div>
+  </div>
+  
+</ion-content>

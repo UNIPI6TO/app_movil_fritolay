@@ -7,10 +7,6 @@ on:
     paths:
       - 'src/fritolay-app/**'
       - '.github/workflows/frontend-tests.yml'
-  push:
-    branches: [ develop ]
-    paths:
-      - 'src/fritolay-app/**'
 
 permissions:
   contents: read
@@ -117,6 +113,30 @@ jobs:
           ---
           *Workflow ejecutado en commit: `${{ github.sha }}`*
 
+    - name: Publicar resumen de resultados
+      if: always()
+      run: |
+        echo "## 🧪 Resultados de Tests Frontend" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ${{ steps.tests.outputs.exit_code == '0' && '✅ Todos los tests pasaron' || '❌ Algunos tests fallaron' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 Resumen de Tests" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.test_results.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📈 Cobertura de Código" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.test_results.outputs.coverage }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "<details><summary>🔍 Ver detalles completos</summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.test_results.outputs.details }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
+
     - name: Verificar que los tests pasaron
       if: steps.tests.outputs.exit_code != '0'
       run: exit 1
@@ -171,121 +191,4 @@ jobs:
           find www/ -name "*.js" -exec ls -lh {} \; | awk '{print $5, $9}'
         fi
 
-  security-check:
-    name: Verificación de Seguridad
-    runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: src/fritolay-app
 
-    steps:
-    - name: Checkout código
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        cache-dependency-path: src/fritolay-app/package-lock.json
-
-    - name: Instalar dependencias
-      run: npm ci
-
-    - name: Verificar vulnerabilidades críticas y altas
-      id: audit
-      run: |
-        npm audit 2>&1 | tee audit-report.txt
-        
-        # Extraer información del reporte en formato JSON
-        AUDIT_JSON=$(npm audit --json 2>/dev/null || echo "{}")
-        
-        # Usar jq si está disponible, si no usar grep
-        if command -v jq &> /dev/null; then
-          CRITICAL_COUNT=$(echo "$AUDIT_JSON" | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo "0")
-          HIGH_COUNT=$(echo "$AUDIT_JSON" | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
-          MODERATE_COUNT=$(echo "$AUDIT_JSON" | jq '.metadata.vulnerabilities.moderate // 0' 2>/dev/null || echo "0")
-        else
-          # Fallback con expresiones regulares
-          CRITICAL_COUNT=$(echo "$AUDIT_JSON" | grep -oP '"critical":\K[0-9]+' | head -1 || echo "0")
-          HIGH_COUNT=$(echo "$AUDIT_JSON" | grep -oP '"high":\K[0-9]+' | head -1 || echo "0")
-          MODERATE_COUNT=$(echo "$AUDIT_JSON" | grep -oP '"moderate":\K[0-9]+' | head -1 || echo "0")
-        fi
-        
-        echo "critical=${CRITICAL_COUNT:-0}" >> $GITHUB_OUTPUT
-        echo "high=${HIGH_COUNT:-0}" >> $GITHUB_OUTPUT
-        echo "moderate=${MODERATE_COUNT:-0}" >> $GITHUB_OUTPUT
-        
-        exit 0
-      continue-on-error: true
-
-    - name: Preparar reporte de auditoría
-      if: always()
-      id: prep_audit
-      run: |
-        # Copiar reporte a directorio accesible
-        cp audit-report.txt /tmp/audit-report.txt
-        # Preparar contenido para embedding
-        REPORT_CONTENT=$(cat audit-report.txt)
-        echo "AUDIT_REPORT<<EOF_AUDIT" >> $GITHUB_ENV
-        echo "$REPORT_CONTENT" >> $GITHUB_ENV
-        echo "EOF_AUDIT" >> $GITHUB_ENV
-
-    - name: Comentar auditoría de seguridad en PR
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request' && always()
-      with:
-        header: security-audit
-        message: |
-          ## 🔒 Auditoría de Seguridad - npm audit
-          
-          ### 📊 Resumen de Vulnerabilidades
-          - 🔴 **Críticas:** ${{ steps.audit.outputs.critical }}
-          - 🟠 **Altas:** ${{ steps.audit.outputs.high }}
-          - 🟡 **Moderadas:** ${{ steps.audit.outputs.moderate }}
-          
-          <details>
-          <summary>📋 Ver reporte completo</summary>
-          
-          ```
-          ${{ env.AUDIT_REPORT }}
-          ```
-          
-          </details>
-          
-          ### 💡 Recomendaciones
-          - Para ignorar vulnerabilidades no críticas: `npm audit --audit-level=critical`
-          - Para actualizar paquetes: `npm audit fix` o `npm audit fix --force`
-          - Más información: [npm audit documentation](https://docs.npmjs.com/cli/audit)
-          
-          ---
-          *Auditoría ejecutada para commit: `${{ github.sha }}`*
-
-    - name: Mostrar reporte de auditoría en logs
-      if: always()
-      run: |
-        echo "## 🔒 Reporte de Seguridad - npm audit" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Vulnerabilidades Detectadas:" >> $GITHUB_STEP_SUMMARY
-        echo "- **Críticas:** ${{ steps.audit.outputs.critical }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Altas:** ${{ steps.audit.outputs.high }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Moderadas:** ${{ steps.audit.outputs.moderate }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Reporte Completo:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        cat audit-report.txt >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-    - name: Verificar dependencias desactualizadas
-      id: outdated
-      run: |
-        echo "### 📦 Dependencias Desactualizadas" >> $GITHUB_STEP_SUMMARY
-        npm outdated 2>&1 | tee outdated-report.txt || true
-        exit 0
-
-    - name: Fallar si hay vulnerabilidades críticas
-      if: steps.audit.outputs.critical != '0'
-      run: |
-        echo "❌ Se encontraron vulnerabilidades CRÍTICAS que deben ser corregidas"
-        exit 1

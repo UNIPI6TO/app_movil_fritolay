@@ -1,24 +1,19 @@
 name: CodeQL Security Scan
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ main, develop, 'feature/*', 'fix/*' ]
     paths:
       - 'src/backend/**'
       - 'src/fritolay-app/**'
       - '.github/workflows/codeql-scan.yml'
-  pull_request:
-    branches: [ main, develop, 'feature/*', 'fix/*' ]
-    paths:
-      - 'src/backend/**'
-      - 'src/fritolay-app/**'
-  schedule:
-    - cron: '0 3 * * 1'   # Cada lunes a las 03:00 UTC
 
 permissions:
   contents: read
   security-events: write
   actions: read
+  pull-requests: write
 
 jobs:
   # ─────────────────────────────────────────────
@@ -55,6 +50,66 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: '/language:csharp'
+        output: results/csharp.sarif
+
+    - name: Extraer hallazgos del SARIF (C#)
+      if: always()
+      id: sarif_csharp
+      run: |
+        SARIF_FILE="results/csharp.sarif"
+        if [ -f "$SARIF_FILE" ]; then
+          TOTAL=$(jq '[.runs[].results // [] | length] | add // 0' "$SARIF_FILE")
+          ERRORS=$(jq '[.runs[].results[] | select(.level=="error")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          WARNINGS=$(jq '[.runs[].results[] | select(.level=="warning")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          NOTES=$(jq '[.runs[].results[] | select(.level=="note" or .level==null)] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          FINDINGS=$(jq -r '
+            .runs[].results[]? |
+            "- **[" + (.ruleId // "N/A") + "]** " +
+            (.message.text // "sin mensaje") +
+            " — `" + (.locations[0].physicalLocation.artifactLocation.uri // "?") +
+            ":" + (.locations[0].physicalLocation.region.startLine | tostring) + "`"
+          ' "$SARIF_FILE" 2>/dev/null | head -20 || echo "_No se encontraron hallazgos._")
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+          echo "notes=$NOTES" >> $GITHUB_OUTPUT
+          echo "findings<<EOF" >> $GITHUB_OUTPUT
+          echo "$FINDINGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        else
+          echo "total=0" >> $GITHUB_OUTPUT
+          echo "errors=0" >> $GITHUB_OUTPUT
+          echo "warnings=0" >> $GITHUB_OUTPUT
+          echo "notes=0" >> $GITHUB_OUTPUT
+          echo "findings=_SARIF no encontrado._" >> $GITHUB_OUTPUT
+        fi
+      working-directory: src/backend
+
+    - name: Comentar resultados CodeQL (C#) en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: always()
+      with:
+        header: codeql-csharp
+        message: |
+          ## 🔍 CodeQL – Análisis de Seguridad C# (Backend)
+
+          | Nivel | Cantidad |
+          |---|---|
+          | 🔴 Errores | ${{ steps.sarif_csharp.outputs.errors }} |
+          | 🟠 Advertencias | ${{ steps.sarif_csharp.outputs.warnings }} |
+          | 🟡 Notas | ${{ steps.sarif_csharp.outputs.notes }} |
+          | 📌 **Total** | **${{ steps.sarif_csharp.outputs.total }}** |
+
+          <details>
+          <summary>📋 Ver hallazgos detallados (máx. 20)</summary>
+
+          ${{ steps.sarif_csharp.outputs.findings }}
+
+          </details>
+
+          > 🔗 Resultados completos en [Security → Code scanning alerts](../../../security/code-scanning)
+          >
+          > *Commit: `${{ github.sha }}`*
 
   # ─────────────────────────────────────────────
   # Job 2: Análisis TypeScript – Frontend Ionic
@@ -89,3 +144,63 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: '/language:javascript-typescript'
+        output: results/javascript.sarif
+
+    - name: Extraer hallazgos del SARIF (TypeScript)
+      if: always()
+      id: sarif_ts
+      run: |
+        SARIF_FILE="results/javascript.sarif"
+        if [ -f "$SARIF_FILE" ]; then
+          TOTAL=$(jq '[.runs[].results // [] | length] | add // 0' "$SARIF_FILE")
+          ERRORS=$(jq '[.runs[].results[] | select(.level=="error")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          WARNINGS=$(jq '[.runs[].results[] | select(.level=="warning")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          NOTES=$(jq '[.runs[].results[] | select(.level=="note" or .level==null)] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          FINDINGS=$(jq -r '
+            .runs[].results[]? |
+            "- **[" + (.ruleId // "N/A") + "]** " +
+            (.message.text // "sin mensaje") +
+            " — `" + (.locations[0].physicalLocation.artifactLocation.uri // "?") +
+            ":" + (.locations[0].physicalLocation.region.startLine | tostring) + "`"
+          ' "$SARIF_FILE" 2>/dev/null | head -20 || echo "_No se encontraron hallazgos._")
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+          echo "notes=$NOTES" >> $GITHUB_OUTPUT
+          echo "findings<<EOF" >> $GITHUB_OUTPUT
+          echo "$FINDINGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        else
+          echo "total=0" >> $GITHUB_OUTPUT
+          echo "errors=0" >> $GITHUB_OUTPUT
+          echo "warnings=0" >> $GITHUB_OUTPUT
+          echo "notes=0" >> $GITHUB_OUTPUT
+          echo "findings=_SARIF no encontrado._" >> $GITHUB_OUTPUT
+        fi
+      working-directory: src/fritolay-app
+
+    - name: Comentar resultados CodeQL (TypeScript) en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: always()
+      with:
+        header: codeql-typescript
+        message: |
+          ## 🔍 CodeQL – Análisis de Seguridad TypeScript (Ionic Frontend)
+
+          | Nivel | Cantidad |
+          |---|---|
+          | 🔴 Errores | ${{ steps.sarif_ts.outputs.errors }} |
+          | 🟠 Advertencias | ${{ steps.sarif_ts.outputs.warnings }} |
+          | 🟡 Notas | ${{ steps.sarif_ts.outputs.notes }} |
+          | 📌 **Total** | **${{ steps.sarif_ts.outputs.total }}** |
+
+          <details>
+          <summary>📋 Ver hallazgos detallados (máx. 20)</summary>
+
+          ${{ steps.sarif_ts.outputs.findings }}
+
+          </details>
+
+          > 🔗 Resultados completos en [Security → Code scanning alerts](../../../security/code-scanning)
+          >
+          > *Commit: `${{ github.sha }}`*

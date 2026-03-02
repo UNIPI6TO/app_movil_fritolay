@@ -75,10 +75,7 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation(
-                    "Iniciando envío de código de recuperación a {EmailRedactado}",
-                    RedactarCorreoParaLog(correoDestino)
-                );
+                _logger.LogInformation("Iniciando envío de código de recuperación.");
 
                 var asunto = "🔐 Código de Recuperación - Frito Lay";
                 

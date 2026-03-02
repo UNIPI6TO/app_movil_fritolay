@@ -200,13 +200,13 @@ namespace backend.Servicios
                 _logger.LogInformation($"Conectando a servidor SMTP: {_servidorSmtp}:{_puertoSmtp}");
 
                 cliente = new SmtpClient(_servidorSmtp, _puertoSmtp);
-                
+
                 // Configuración SMTP mejorada
                 cliente.EnableSsl = _usarSsl;
                 cliente.UseDefaultCredentials = false;
                 cliente.Credentials = new NetworkCredential(_usuarioSmtp, _contrasenaSmtp);
                 cliente.DeliveryMethod = SmtpDeliveryMethod.Network;
-                
+
                 // Timeouts
                 cliente.Timeout = 10000;
 
@@ -225,12 +225,6 @@ namespace backend.Servicios
 
                 _logger.LogInformation($"✅ Email enviado exitosamente a {SanitizarParaLog(correoDestino)}");
                 return true;
-            {
-                _logger.LogError($"❌ Error SMTP: {smtpEx.StatusCode} - {smtpEx.Message}");
-                _logger.LogError($"   Servidor: {_servidorSmtp}:{_puertoSmtp}");
-                _logger.LogError($"   Usuario: {_usuarioSmtp}");
-                _logger.LogError($"   SSL: {_usarSsl}");
-                return false;
             }
             catch (Exception ex)
             {

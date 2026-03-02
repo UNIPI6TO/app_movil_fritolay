@@ -3,7 +3,7 @@ name: CodeQL Security Scan
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ main, develop, 'feature/*', 'fix/*' ]
+    branches: [ release, develop  ]
     paths:
       - 'src/backend/**'
       - 'src/fritolay-app/**'

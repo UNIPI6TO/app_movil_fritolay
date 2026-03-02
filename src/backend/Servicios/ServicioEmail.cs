@@ -32,7 +32,7 @@ namespace backend.Servicios
             _contrasenaSmtp = _configuracion["Smtp:Contrasena"] ?? throw new InvalidOperationException("Falta Smtp:Contrasena");
             _usarSsl = bool.Parse(_configuracion["Smtp:UsarSSL"] ?? "true");
 
-            _logger.LogInformation("Servicio de Email inicializado: "+_emailOrigen+" via "+_servidorSmtp+":"+_puertoSmtp);
+            _logger.LogInformation("Servicio de Email inicializado");
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation($"Iniciando envío de código de recuperación a {SanitizarParaLog(correoDestino)}");
+                _logger.LogInformation($"Iniciando envío de código de recuperación");
 
                 var asunto = "🔐 Código de Recuperación - Frito Lay";
                 
@@ -121,7 +121,7 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation("Iniciando envío de confirmación de registro a "+SanitizarParaLog(correoDestino));
+                _logger.LogInformation("Iniciando envío de confirmación de registro ");
                 var asunto = "✅ ¡Bienvenido a Frito Lay!";
                 var contenidoHtml = $@"
                     <!DOCTYPE html>
@@ -220,10 +220,10 @@ namespace backend.Servicios
 
                 mailMessage.To.Add(new MailAddress(correoDestino, nombreDestino));
 
-                _logger.LogInformation("Enviando email a "+SanitizarParaLog(correoDestino)+"...");
+
                 await cliente.SendMailAsync(mailMessage);
 
-                _logger.LogInformation("Email enviado exitosamente a " + SanitizarParaLog(correoDestino));
+                _logger.LogInformation("Email enviado exitosamente");
                 return true;
             }
             catch (Exception ex)

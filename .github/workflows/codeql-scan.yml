@@ -83,47 +83,13 @@ jobs:
         echo "notes=$NOTES" >> $GITHUB_OUTPUT
         { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
 
-    - name: Publicar resumen CodeQL (C#) en Summary
-      if: always()
-      shell: bash
-      run: |
-        PR_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}"
-        echo "## 🔍 CodeQL – C# Backend" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Nivel | Cantidad |" >> $GITHUB_STEP_SUMMARY
-        echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔴 Errores | ${{ steps.sarif_csharp.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟠 Advertencias | ${{ steps.sarif_csharp.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟡 Notas | ${{ steps.sarif_csharp.outputs.notes }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📌 **Total** | **${{ steps.sarif_csharp.outputs.total }}** |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Hallazgos" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.sarif_csharp.outputs.findings }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "🔗 [Ver todos los resultados en Security → Code scanning]($PR_URL)" >> $GITHUB_STEP_SUMMARY
-
     - name: Comentar resultados CodeQL (C#) en PR
       uses: marocchino/sticky-pull-request-comment@v2
       if: always()
       with:
         header: codeql-csharp
         message: |
-          ## 🔍 CodeQL – Análisis de Seguridad C# (Backend)
-
-          | Nivel | Cantidad |
-          |---|---|
-          | 🔴 Errores | ${{ steps.sarif_csharp.outputs.errors }} |
-          | 🟠 Advertencias | ${{ steps.sarif_csharp.outputs.warnings }} |
-          | 🟡 Notas | ${{ steps.sarif_csharp.outputs.notes }} |
-          | 📌 **Total** | **${{ steps.sarif_csharp.outputs.total }}** |
-
-          <details>
-          <summary>📋 Ver hallazgos detallados (máx. 20)</summary>
-
-          ${{ steps.sarif_csharp.outputs.findings }}
-
-          </details>
-
+          ## 🔍 CodeQL – Análisis de Seguridad C# (.NET Backend)
           > 🔗 [Ver resultados completos en Security → Code scanning](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }})
           >
           > *Commit: `${{ github.sha }}`*
@@ -194,25 +160,6 @@ jobs:
         echo "notes=$NOTES" >> $GITHUB_OUTPUT
         { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
 
-    - name: Publicar resumen CodeQL (TypeScript) en Summary
-      if: always()
-      shell: bash
-      run: |
-        PR_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}"
-        echo "## 🔍 CodeQL – TypeScript Frontend (Ionic)" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Nivel | Cantidad |" >> $GITHUB_STEP_SUMMARY
-        echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔴 Errores | ${{ steps.sarif_ts.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟠 Advertencias | ${{ steps.sarif_ts.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟡 Notas | ${{ steps.sarif_ts.outputs.notes }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📌 **Total** | **${{ steps.sarif_ts.outputs.total }}** |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Hallazgos" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.sarif_ts.outputs.findings }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "🔗 [Ver todos los resultados en Security → Code scanning]($PR_URL)" >> $GITHUB_STEP_SUMMARY
-
     - name: Comentar resultados CodeQL (TypeScript) en PR
       uses: marocchino/sticky-pull-request-comment@v2
       if: always()
@@ -220,20 +167,7 @@ jobs:
         header: codeql-typescript
         message: |
           ## 🔍 CodeQL – Análisis de Seguridad TypeScript (Ionic Frontend)
-
-          | Nivel | Cantidad |
-          |---|---|
-          | 🔴 Errores | ${{ steps.sarif_ts.outputs.errors }} |
-          | 🟠 Advertencias | ${{ steps.sarif_ts.outputs.warnings }} |
-          | 🟡 Notas | ${{ steps.sarif_ts.outputs.notes }} |
-          | 📌 **Total** | **${{ steps.sarif_ts.outputs.total }}** |
-
-          <details>
-          <summary>📋 Ver hallazgos detallados (máx. 20)</summary>
-
           ${{ steps.sarif_ts.outputs.findings }}
-
-          </details>
 
           > 🔗 [Ver resultados completos en Security → Code scanning](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }})
           >

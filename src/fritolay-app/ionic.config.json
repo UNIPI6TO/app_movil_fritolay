@@ -1,0 +1,7 @@
+{
+  "name": "fritolay-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

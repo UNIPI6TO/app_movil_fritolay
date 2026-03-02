@@ -1,0 +1,105 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cerrarModal()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Detalle del Pedido #{{idPedido}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="loading" class="ion-text-center ion-margin">
+    <ion-spinner></ion-spinner>
+    <p>Cargando detalles...</p>
+  </div>
+
+  <div *ngIf="error" class="error ion-margin">
+    {{error}}
+  </div>
+
+  <!-- Información General del Pedido -->
+  <div *ngIf="pedido && !loading">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Información del Pedido</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="6">
+              <p><strong>Fecha:</strong></p>
+              <p>{{pedido.fechaCreacion | date:'short'}}</p>
+            </ion-col>
+            <ion-col size="6">
+              <p><strong>Estado:</strong></p>
+              <ion-badge [color]="getEstadoColor(pedido.estado)">{{pedido.estado}}</ion-badge>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="6">
+              <p><strong>Método Pago:</strong></p>
+              <p>{{pedido.metodoPago}}</p>
+            </ion-col>
+            <ion-col size="6">
+              <p><strong>Total Items:</strong></p>
+              <p>{{pedido.cantidadItems}}</p>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Detalles de Productos -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Productos</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <div *ngFor="let producto of pedido.resumenProductos; let last = last" class="producto-item">
+            <h3>{{producto.nombre}}</h3>
+            <p>Cantidad: {{producto.cantidad}}</p>
+            <p>Precio Unitario: {{producto.precioUnitarioBase | currency}}</p>
+            <p *ngIf="producto.porcentajeDescuento > 0">
+              Descuento: {{producto.porcentajeDescuento}}% ({{producto.descuentoTotalLinea | currency}})
+            </p>
+            <p *ngIf="producto.porcentajeImpuesto > 0">
+              Impuesto: {{producto.porcentajeImpuesto}}% ({{producto.impuestoTotalLinea | currency}})
+            </p>
+            <p><strong>Total Línea: {{producto.totalLinea | currency}}</strong></p>
+            <div *ngIf="!last" class="divider"></div>
+          </div>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Resumen de Totales -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Resumen de Totales</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item>
+            <ion-label>Subtotal:</ion-label>
+            <span slot="end"><strong>{{pedido.subtotal | currency}}</strong></span>
+          </ion-item>
+          <ion-item *ngIf="pedido.totalDescuento > 0">
+            <ion-label>Descuento Total:</ion-label>
+            <span slot="end"><strong style="color: green;">-{{pedido.totalDescuento | currency}}</strong></span>
+          </ion-item>
+          <ion-item *ngIf="pedido.totalImpuestos > 0">
+            <ion-label>Impuestos:</ion-label>
+            <span slot="end"><strong>{{pedido.totalImpuestos | currency}}</strong></span>
+          </ion-item>
+          <ion-item lines="full">
+            <ion-label>Total a Pagar:</ion-label>
+            <span slot="end"><strong style="font-size: 1.2em; color: #3880ff;">{{pedido.totalPagar | currency}}</strong></span>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

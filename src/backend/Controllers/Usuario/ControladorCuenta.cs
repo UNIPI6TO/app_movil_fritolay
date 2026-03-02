@@ -7,6 +7,7 @@ using System.Text;
 using backend.Datos;
 using backend.Modelos;
 using backend.Modelos.Dto;
+using backend.Servicios;
 using BCrypt.Net;
 
 namespace backend.Controllers.Usuario
@@ -17,11 +18,19 @@ namespace backend.Controllers.Usuario
     {
         private readonly ContextoBaseDatos _contexto;
         private readonly IConfiguration _configuracion;
+        private readonly IServicioEmail _servicioEmail;
+        private readonly ILogger<ControladorCuenta> _logger;
 
-        public ControladorCuenta(ContextoBaseDatos contexto, IConfiguration configuracion)
+        public ControladorCuenta(
+            ContextoBaseDatos contexto, 
+            IConfiguration configuracion,
+            IServicioEmail servicioEmail,
+            ILogger<ControladorCuenta> logger)
         {
             _contexto = contexto;
             _configuracion = configuracion;
+            _servicioEmail = servicioEmail;
+            _logger = logger;
         }
 
         // RF-001: Registro de Cliente (Actualizado con Cédula)
@@ -31,7 +40,7 @@ namespace backend.Controllers.Usuario
             // Validamos si ya existe el correo O la cédula
             if (await _contexto.Clientes.AnyAsync(c => c.CorreoElectronico == datos.CorreoElectronico || c.Cedula == datos.Cedula))
             {
-                return BadRequest("El correo electrónico o la cédula ya están registrados.");
+                return BadRequest(new { mensaje = "El correo electrónico o la cédula ya están registrados." });
             }
 
             string hash = BCrypt.Net.BCrypt.HashPassword(datos.Contrasena);
@@ -49,7 +58,19 @@ namespace backend.Controllers.Usuario
             _contexto.Clientes.Add(nuevoCliente);
             await _contexto.SaveChangesAsync();
 
-            return Ok(new { mensaje = "Usuario registrado exitosamente." });
+            // Enviar email de confirmación de registro
+            var emailEnviado = await _servicioEmail.EnviarConfirmacionRegistroAsync(
+                datos.CorreoElectronico, 
+                datos.NombreCompleto
+            );
+
+            if (!emailEnviado)
+            {
+                _logger.LogWarning($"Email de confirmación no pudo ser enviado a {datos.CorreoElectronico}");
+                // No bloqueamos el registro si falla el email, solo registramos la advertencia
+            }
+
+            return Ok(new { mensaje = "Usuario registrado exitosamente. Verifica tu correo." });
         }
 
         // RF-002: Inicio de Sesión
@@ -61,7 +82,7 @@ namespace backend.Controllers.Usuario
 
             if (cliente == null || !BCrypt.Net.BCrypt.Verify(datos.Contrasena, cliente.ContrasenaHash))
             {
-                return Unauthorized("Credenciales incorrectas.");
+                return Unauthorized(new { mensaje = "Credenciales incorrectas." });
             }
 
             var token = GenerarTokenJwt(cliente);
@@ -78,10 +99,10 @@ namespace backend.Controllers.Usuario
 
         // RF-011: Solicitar Recuperación (Generar Código)
         [HttpPost("recuperar")]
-        public async Task<IActionResult> SolicitarRecuperacion([FromBody] string correo)
+        public async Task<IActionResult> SolicitarRecuperacion([FromBody] Modelos.Dto.DtoRecuperar datos)
         {
-            var cliente = await _contexto.Clientes.FirstOrDefaultAsync(c => c.CorreoElectronico == correo);
-            if (cliente == null) return NotFound("Correo no encontrado.");
+            var cliente = await _contexto.Clientes.FirstOrDefaultAsync(c => c.CorreoElectronico == datos.CorreoElectronico);
+            if (cliente == null) return NotFound(new { mensaje = "Correo no encontrado." });
 
             // Generar código de 6 dígitos
             var codigo = new Random().Next(100000, 999999).ToString();
@@ -91,9 +112,21 @@ namespace backend.Controllers.Usuario
 
             await _contexto.SaveChangesAsync();
 
-            // AQUÍ: Deberías llamar a tu servicio de Email real.
-            // Por ahora simulamos devolviéndolo (solo para pruebas)
-            return Ok(new { mensaje = "Código enviado (Simulado) tiene una validez de 5 minutos", codigoDebug = codigo });
+            // Enviar código de recuperación por email
+            var emailEnviado = await _servicioEmail.EnviarCodigoRecuperacionAsync(
+                datos.CorreoElectronico,
+                cliente.NombreCompleto,
+                codigo
+            );
+
+            if (!emailEnviado)
+            {
+                _logger.LogWarning($"Error al enviar código de recuperación a {datos.CorreoElectronico}");
+                return StatusCode(500, new { mensaje = "Error al enviar el código. Por favor, intenta nuevamente." });
+            }
+
+            _logger.LogInformation($"Código de recuperación enviado a {datos.CorreoElectronico}");
+            return Ok(new { mensaje = "Código de recuperación enviado a tu correo. Tiene una validez de 5 minutos." });
         }
 
         // RF-012: Restablecer Contraseña
@@ -104,9 +137,9 @@ namespace backend.Controllers.Usuario
                 .FirstOrDefaultAsync(c => c.CorreoElectronico == datos.CorreoElectronico
                                        && c.CodigoRecuperacion == datos.CodigoVerificacion);
 
-            if (cliente == null) return BadRequest("Código inválido o correo incorrecto.");
+            if (cliente == null) return BadRequest(new { mensaje = "Código inválido o correo incorrecto." });
 
-            if (cliente.ExpiracionCodigo < DateTime.Now) return BadRequest("El código ha expirado.");
+            if (cliente.ExpiracionCodigo < DateTime.Now) return BadRequest(new { mensaje = "El código ha expirado." });
 
             // Actualizar contraseña
             cliente.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(datos.NuevaContrasena);
@@ -130,7 +163,9 @@ namespace backend.Controllers.Usuario
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            var clave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuracion["ConfiguracionJwt:ClaveSecreta"]));
+            var claveSecreta = _configuracion["ConfiguracionJwt:ClaveSecreta"];
+            if (string.IsNullOrEmpty(claveSecreta)) throw new InvalidOperationException("Falta ConfiguracionJwt:ClaveSecreta en la configuración.");
+            var clave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(claveSecreta));
             var credenciales = new SigningCredentials(clave, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(

@@ -1,0 +1,64 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Mi Pedido</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let item of items">
+      <ion-thumbnail slot="start">
+        <img [src]="item.producto.imagenes[0]">
+      </ion-thumbnail>
+      <ion-label>
+        <h2>{{item.producto.nombre}}</h2>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>${{getPrecioBase(item.producto) | number:'1.2-2'}}</span>
+          <ion-chip *ngIf="tieneDescuento(item.producto)" color="primary" fill="solid" size="small">
+            <ion-label>-{{getDescuentoPercent(item.producto) | number:'1.0-0'}}%</ion-label>
+          </ion-chip>
+        </div>
+        <p>x {{item.cantidad}} = <strong>${{getPrecioFinalTotal(item) | number:'1.2-2'}}</strong></p>
+      </ion-label>
+      <div slot="end" class="qty-control">
+        <ion-button size="small" (click)="menos(item)">-</ion-button>
+        <ion-input 
+          type="number" 
+          class="qty-input" 
+          [value]="item.cantidad"
+          (ionChange)="cambiarCantidadItem(item, $event.detail.value)"
+          min="0"
+          inputmode="numeric"
+          style="max-width: 60px; text-align: center; color: black;">
+        </ion-input>
+        <ion-button size="small" (click)="mas(item)">+</ion-button>
+      </div>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="ion-padding" style="width:100%; display:flex; flex-direction:column; gap:12px; align-items:flex-end;">
+      <div style="width:100%; display:flex; flex-direction:column; gap:6px; font-size:0.9rem; border-top:1px solid #e0e0e0; padding-top:10px;">
+        <div style="display:flex; justify-content:space-between; width:100%;">
+          <span>Subtotal:</span>
+          <span>${{ getSubtotalCarrito() | number:'1.2-2' }}</span>
+        </div>
+        <div *ngIf="getTotalDescuentoCarrito() > 0" style="display:flex; justify-content:space-between; width:100%; color:#10b981;">
+          <span>Descuento:</span>
+          <span>- ${{ getTotalDescuentoCarrito() | number:'1.2-2' }}</span>
+        </div>
+        <div *ngIf="getTotalIvaCarrito() > 0" style="display:flex; justify-content:space-between; width:100%; color:#666;">
+          <span>IVA:</span>
+          <span>+ ${{ getTotalIvaCarrito() | number:'1.2-2' }}</span>
+        </div>
+      </div>
+      <h3 style="margin:0; font-size:1.2rem;">Total: ${{total | number:'1.2-2'}}</h3>
+      <ion-button color="secondary" shape="round" (click)="irACheckout()" [disabled]="items.length === 0">Pagar</ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

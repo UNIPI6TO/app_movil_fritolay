@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="imagen no disponible">
+  <rect width="100%" height="100%" fill="#f0f0f0" />
+  <rect x="12" y="12" width="376" height="276" fill="#fff" stroke="#e0e0e0" stroke-width="2" rx="8"/>
+  <g fill="#b0b0b0" font-family="Arial, Helvetica, sans-serif" font-size="20" text-anchor="middle">
+    <text x="200" y="150">Imagen no disponible</text>
+  </g>
+</svg>

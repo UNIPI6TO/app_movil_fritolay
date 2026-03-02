@@ -1,0 +1,146 @@
+name: Backend Tests (.NET)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ develop ]
+    paths:
+      - 'src/backend/**'
+      - 'src/backend.Tests/**'
+      - '.github/workflows/backend-tests.yml'
+  push:
+    branches: [ develop ]
+    paths:
+      - 'src/backend/**'
+      - 'src/backend.Tests/**'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Run Backend Unit Tests
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/backend
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restaurar dependencias
+      run: dotnet restore backend.sln
+
+    - name: Compilar solución
+      run: dotnet build backend.sln --configuration Release --no-restore
+
+    - name: Ejecutar tests unitarios con cobertura
+      id: tests
+      run: |
+        dotnet test backend.sln \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --logger "trx;LogFileName=test-results.trx" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults 2>&1 | tee test-output.txt
+        TEST_EXIT_CODE=${PIPESTATUS[0]}
+        echo "exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+        exit $TEST_EXIT_CODE
+      continue-on-error: true
+
+    - name: Extraer resultados de tests
+      if: always()
+      id: test_results
+      run: |
+        if [ -f test-output.txt ]; then
+          # Extraer resumen de tests (Passed, Failed, Skipped)
+          SUMMARY=$(grep -E "(Passed!|Failed!|Total tests:|Test Run)" test-output.txt | tail -n 10 || echo "No se encontró resumen")
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extraer detalles de tests fallidos si existen
+          FAILURES=$(grep -A 10 "Failed:" test-output.txt || echo "")
+          echo "failures<<EOF" >> $GITHUB_OUTPUT
+          echo "$FAILURES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extraer últimas líneas completas
+          DETAILS=$(tail -n 50 test-output.txt)
+          echo "details<<EOF" >> $GITHUB_OUTPUT
+          echo "$DETAILS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Mostrar en el log del workflow
+          echo "### 📊 Resumen de Tests ###"
+          echo "$SUMMARY"
+          if [ ! -z "$FAILURES" ]; then
+            echo ""
+            echo "### ❌ Detalles de Fallos ###"
+            echo "$FAILURES"
+          fi
+        fi
+
+    - name: Comentar resultados de tests en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request' && always()
+      with:
+        header: backend-test-results
+        message: |
+          ## 🧪 Resultados de Tests Backend
+          
+          **Status**: ${{ steps.tests.outputs.exit_code == '0' && '✅ Todos los tests pasaron' || '❌ Algunos tests fallaron' }}
+          
+          ### 📊 Resumen de Tests
+          ```
+          ${{ steps.test_results.outputs.summary }}
+          ```
+          
+          ${{ steps.test_results.outputs.failures != '' && '### ❌ Tests Fallidos' || '' }}
+          ${{ steps.test_results.outputs.failures != '' && '```' || '' }}
+          ${{ steps.test_results.outputs.failures }}
+          ${{ steps.test_results.outputs.failures != '' && '```' || '' }}
+          
+          <details>
+          <summary>🔍 Ver detalles completos de ejecución</summary>
+          
+          ```
+          ${{ steps.test_results.outputs.details }}
+          ```
+          </details>
+          
+          ---
+          *Workflow ejecutado en commit: `${{ github.sha }}`*
+
+    - name: Verificar que los tests pasaron
+      if: steps.tests.outputs.exit_code != '0'
+      run: exit 1
+
+    - name: Publicar resultados de tests
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Backend Test Results
+        path: src/backend/TestResults/test-results.trx
+        reporter: dotnet-trx
+        fail-on-error: true
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: ./src/backend/TestResults/**/coverage.cobertura.xml
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+

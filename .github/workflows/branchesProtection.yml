@@ -4,30 +4,38 @@ on:
   pull_request:
     branches:
       - main
-      - release/*
+      - release
+
+
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
-  check-source-branch:
+  validate-flow:
     runs-on: ubuntu-latest
     steps:
-      - name: Validar flujo de ramas
+      - name: Validar Origen y Destino
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SOURCE: ${{ github.head_ref }}
+          TARGET: ${{ github.base_ref }}
         run: |
-          SOURCE_BRANCH=${{ github.head_ref }}
-          TARGET_BRANCH=${{ github.base_ref }}
-          
-          echo "Source: $SOURCE_BRANCH"
-          echo "Target: $TARGET_BRANCH"
-
-          # Regla 1: Solo release/* puede ir a main
-          if [[ "$TARGET_BRANCH" == "main" && ! "$SOURCE_BRANCH" =~ ^release/ ]]; then
-            echo "Error: Solo se permiten Pull Requests a 'main' desde ramas 'release/*'"
+          # 1. Validación: Solo 'release' -> 'main'
+          if [[ "$TARGET" == "main" && "$SOURCE" != "release" ]]; then
+            MSG="❌ **Error de Flujo:** No puedes hacer un merge directo a \`main\` desde \`$SOURCE\`. Solo se permiten Pull Requests desde la rama \`release\`."
+            gh pr comment $PR_NUMBER --body "$MSG"
+            gh pr close $PR_NUMBER
             exit 1
           fi
 
-          # Regla 2: Solo develop puede ir a release/*
-          if [[ "$TARGET_BRANCH" =~ ^release/ && "$SOURCE_BRANCH" != "develop" ]]; then
-            echo "Error: Solo se permiten Pull Requests a 'release/*' desde 'develop'"
+          # 2. Validación: Solo 'develop' -> 'release'
+          if [[ "$TARGET" == "release" && "$SOURCE" != "develop" ]]; then
+            MSG="❌ **Error de Flujo:** Solo se permiten Pull Requests hacia \`release\` desde la rama \`develop\`. (Origen actual: \`$SOURCE\`)."
+            gh pr comment $PR_NUMBER --body "$MSG"
+            gh pr close $PR_NUMBER
             exit 1
           fi
 
-          echo "Flujo de ramas correcto."
+          echo "✅ El flujo de ramas es correcto."

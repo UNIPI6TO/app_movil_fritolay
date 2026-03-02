@@ -50,44 +50,44 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: '/language:csharp'
-        output: ${{ github.workspace }}/results/csharp.sarif
+        output: ${{ github.workspace }}/results/csharp
 
     - name: Extraer hallazgos del SARIF (C#)
       if: always()
       id: sarif_csharp
       shell: bash
       run: |
-        SARIF_FILE="$GITHUB_WORKSPACE/results/csharp.sarif"
-        if [ -f "$SARIF_FILE" ]; then
+        SARIF_DIR="$GITHUB_WORKSPACE/results/csharp"
+        SARIF_FILE=$(find "$SARIF_DIR" -name "*.sarif" 2>/dev/null | head -1)
+        echo "SARIF encontrado: $SARIF_FILE"
+        if [ -n "$SARIF_FILE" ] && [ -f "$SARIF_FILE" ]; then
           TOTAL=$(jq '[.runs[].results // []] | map(length) | add // 0' "$SARIF_FILE")
-          ERRORS=$(jq '[.runs[].results[]? | select(.level=="error")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          WARNINGS=$(jq '[.runs[].results[]? | select(.level=="warning")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          NOTES=$(jq '[.runs[].results[]? | select(.level=="note" or .level==null)] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          ERRORS=$(jq '[.runs[].results[]? | select(.level=="error")] | length' "$SARIF_FILE")
+          WARNINGS=$(jq '[.runs[].results[]? | select(.level=="warning")] | length' "$SARIF_FILE")
+          NOTES=$(jq '[.runs[].results[]? | select(.level=="note" or .level==null)] | length' "$SARIF_FILE")
           FINDINGS=$(jq -r '
             .runs[].results[]? |
             "- **[" + (.ruleId // "N/A") + "]** " +
             (.message.text // "sin mensaje") +
             " — `" + (.locations[0].physicalLocation.artifactLocation.uri // "?") +
             ":" + ((.locations[0].physicalLocation.region.startLine // 0) | tostring) + "`"
-          ' "$SARIF_FILE" 2>/dev/null | head -20)
-          [ -z "$FINDINGS" ] && FINDINGS="_No se encontraron hallazgos._"
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
-          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
-          echo "notes=$NOTES" >> $GITHUB_OUTPUT
-          { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
+          ' "$SARIF_FILE" | head -20)
+          [ -z "$FINDINGS" ] && FINDINGS="_Sin hallazgos._"
         else
-          echo "total=0" >> $GITHUB_OUTPUT
-          echo "errors=0" >> $GITHUB_OUTPUT
-          echo "warnings=0" >> $GITHUB_OUTPUT
-          echo "notes=0" >> $GITHUB_OUTPUT
-          echo "findings=_SARIF no encontrado._" >> $GITHUB_OUTPUT
+          TOTAL=0; ERRORS=0; WARNINGS=0; NOTES=0
+          FINDINGS="_SARIF no encontrado en $SARIF_DIR_"
         fi
+        echo "total=$TOTAL" >> $GITHUB_OUTPUT
+        echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+        echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+        echo "notes=$NOTES" >> $GITHUB_OUTPUT
+        { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
 
     - name: Publicar resumen CodeQL (C#) en Summary
       if: always()
       shell: bash
       run: |
+        PR_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}"
         echo "## 🔍 CodeQL – C# Backend" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Nivel | Cantidad |" >> $GITHUB_STEP_SUMMARY
@@ -99,6 +99,8 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Hallazgos" >> $GITHUB_STEP_SUMMARY
         echo "${{ steps.sarif_csharp.outputs.findings }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🔗 [Ver todos los resultados en Security → Code scanning]($PR_URL)" >> $GITHUB_STEP_SUMMARY
 
     - name: Comentar resultados CodeQL (C#) en PR
       uses: marocchino/sticky-pull-request-comment@v2
@@ -122,7 +124,7 @@ jobs:
 
           </details>
 
-          > 🔗 Resultados completos en [Security → Code scanning alerts](../../../security/code-scanning)
+          > 🔗 [Ver resultados completos en Security → Code scanning](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }})
           >
           > *Commit: `${{ github.sha }}`*
 
@@ -159,45 +161,83 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: '/language:javascript-typescript'
-        output: ${{ github.workspace }}/results/javascript.sarif
+        output: ${{ github.workspace }}/results/javascript
 
     - name: Extraer hallazgos del SARIF (TypeScript)
       if: always()
       id: sarif_ts
       shell: bash
       run: |
-        SARIF_FILE="$GITHUB_WORKSPACE/results/javascript.sarif"
-        if [ -f "$SARIF_FILE" ]; then
+        SARIF_DIR="$GITHUB_WORKSPACE/results/javascript"
+        SARIF_FILE=$(find "$SARIF_DIR" -name "*.sarif" 2>/dev/null | head -1)
+        echo "SARIF encontrado: $SARIF_FILE"
+        if [ -n "$SARIF_FILE" ] && [ -f "$SARIF_FILE" ]; then
           TOTAL=$(jq '[.runs[].results // []] | map(length) | add // 0' "$SARIF_FILE")
-          ERRORS=$(jq '[.runs[].results[]? | select(.level=="error")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          WARNINGS=$(jq '[.runs[].results[]? | select(.level=="warning")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          NOTES=$(jq '[.runs[].results[]? | select(.level=="note" or .level==null)] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
+          ERRORS=$(jq '[.runs[].results[]? | select(.level=="error")] | length' "$SARIF_FILE")
+          WARNINGS=$(jq '[.runs[].results[]? | select(.level=="warning")] | length' "$SARIF_FILE")
+          NOTES=$(jq '[.runs[].results[]? | select(.level=="note" or .level==null)] | length' "$SARIF_FILE")
           FINDINGS=$(jq -r '
             .runs[].results[]? |
             "- **[" + (.ruleId // "N/A") + "]** " +
             (.message.text // "sin mensaje") +
             " — `" + (.locations[0].physicalLocation.artifactLocation.uri // "?") +
             ":" + ((.locations[0].physicalLocation.region.startLine // 0) | tostring) + "`"
-          ' "$SARIF_FILE" 2>/dev/null | head -20)
-          [ -z "$FINDINGS" ] && FINDINGS="_No se encontraron hallazgos._"
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
-          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
-          echo "notes=$NOTES" >> $GITHUB_OUTPUT
-          { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
+          ' "$SARIF_FILE" | head -20)
+          [ -z "$FINDINGS" ] && FINDINGS="_Sin hallazgos._"
         else
-          echo "total=0" >> $GITHUB_OUTPUT
-          echo "errors=0" >> $GITHUB_OUTPUT
-          echo "warnings=0" >> $GITHUB_OUTPUT
-          echo "notes=0" >> $GITHUB_OUTPUT
-          echo "findings=_SARIF no encontrado._" >> $GITHUB_OUTPUT
+          TOTAL=0; ERRORS=0; WARNINGS=0; NOTES=0
+          FINDINGS="_SARIF no encontrado en $SARIF_DIR_"
         fi
+        echo "total=$TOTAL" >> $GITHUB_OUTPUT
+        echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+        echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+        echo "notes=$NOTES" >> $GITHUB_OUTPUT
+        { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
 
     - name: Publicar resumen CodeQL (TypeScript) en Summary
       if: always()
       shell: bash
       run: |
+        PR_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}"
         echo "## 🔍 CodeQL – TypeScript Frontend (Ionic)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Nivel | Cantidad |" >> $GITHUB_STEP_SUMMARY
+        echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔴 Errores | ${{ steps.sarif_ts.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🟠 Advertencias | ${{ steps.sarif_ts.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🟡 Notas | ${{ steps.sarif_ts.outputs.notes }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 📌 **Total** | **${{ steps.sarif_ts.outputs.total }}** |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Hallazgos" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.sarif_ts.outputs.findings }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🔗 [Ver todos los resultados en Security → Code scanning]($PR_URL)" >> $GITHUB_STEP_SUMMARY
+
+    - name: Comentar resultados CodeQL (TypeScript) en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: always()
+      with:
+        header: codeql-typescript
+        message: |
+          ## 🔍 CodeQL – Análisis de Seguridad TypeScript (Ionic Frontend)
+
+          | Nivel | Cantidad |
+          |---|---|
+          | 🔴 Errores | ${{ steps.sarif_ts.outputs.errors }} |
+          | 🟠 Advertencias | ${{ steps.sarif_ts.outputs.warnings }} |
+          | 🟡 Notas | ${{ steps.sarif_ts.outputs.notes }} |
+          | 📌 **Total** | **${{ steps.sarif_ts.outputs.total }}** |
+
+          <details>
+          <summary>📋 Ver hallazgos detallados (máx. 20)</summary>
+
+          ${{ steps.sarif_ts.outputs.findings }}
+
+          </details>
+
+          > 🔗 [Ver resultados completos en Security → Code scanning](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }})
+          >
+          > *Commit: `${{ github.sha }}`*
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Nivel | Cantidad |" >> $GITHUB_STEP_SUMMARY
         echo "|---|---|" >> $GITHUB_STEP_SUMMARY

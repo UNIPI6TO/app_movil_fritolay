@@ -50,67 +50,6 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: '/language:csharp'
-        output: ${{ github.workspace }}/results/csharp.sarif
-
-    - name: Extraer hallazgos del SARIF (C#)
-      if: always()
-      id: sarif_csharp
-      shell: bash
-      run: |
-        SARIF_FILE="$GITHUB_WORKSPACE/results/csharp.sarif"
-        if [ -f "$SARIF_FILE" ]; then
-          TOTAL=$(jq '[.runs[].results // []] | map(length) | add // 0' "$SARIF_FILE")
-          ERRORS=$(jq '[.runs[].results[]? | select(.level=="error")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          WARNINGS=$(jq '[.runs[].results[]? | select(.level=="warning")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          NOTES=$(jq '[.runs[].results[]? | select(.level=="note" or .level==null)] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          FINDINGS=$(jq -r '
-            .runs[].results[]? |
-            "- **[" + (.ruleId // "N/A") + "]** " +
-            (.message.text // "sin mensaje") +
-            " — `" + (.locations[0].physicalLocation.artifactLocation.uri // "?") +
-            ":" + ((.locations[0].physicalLocation.region.startLine // 0) | tostring) + "`"
-          ' "$SARIF_FILE" 2>/dev/null | head -20)
-          [ -z "$FINDINGS" ] && FINDINGS="_No se encontraron hallazgos._"
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
-          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
-          echo "notes=$NOTES" >> $GITHUB_OUTPUT
-          { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
-        else
-          echo "total=0" >> $GITHUB_OUTPUT
-          echo "errors=0" >> $GITHUB_OUTPUT
-          echo "warnings=0" >> $GITHUB_OUTPUT
-          echo "notes=0" >> $GITHUB_OUTPUT
-          echo "findings=_SARIF no encontrado._" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Publicar resumen CodeQL (C#) en Summary
-      if: always()
-      shell: bash
-      run: |
-        echo "## 🔍 CodeQL – C# Backend" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Nivel | Cantidad |" >> $GITHUB_STEP_SUMMARY
-        echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔴 Errores | ${{ steps.sarif_csharp.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟠 Advertencias | ${{ steps.sarif_csharp.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟡 Notas | ${{ steps.sarif_csharp.outputs.notes }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📌 **Total** | **${{ steps.sarif_csharp.outputs.total }}** |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Hallazgos" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.sarif_csharp.outputs.findings }}" >> $GITHUB_STEP_SUMMARY
-
-    - name: Comentar resultados CodeQL (C#) en PR
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: always()
-      with:
-        header: codeql-csharp
-        message: |
-          ## 🔍 CodeQL – Análisis de Seguridad C# (Backend)
-
-          >  🔗 [Ver resultados completos en Security → Code scanning](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }})
-          >
-          > *Commit: `${{ github.sha }}`*
 
   # ─────────────────────────────────────────────
   # Job 2: Análisis TypeScript – Frontend Ionic
@@ -138,63 +77,132 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: javascript-typescript
-        build-mode: none          # TS/JS no requiere compilación para CodeQL
+        build-mode: none
         queries: security-and-quality
 
     - name: Perform CodeQL Analysis (TypeScript)
       uses: github/codeql-action/analyze@v3
       with:
         category: '/language:javascript-typescript'
-        output: ${{ github.workspace }}/results/javascript.sarif
 
-    - name: Extraer hallazgos del SARIF (TypeScript)
-      if: always()
-      id: sarif_ts
-      shell: bash
-      run: |
-        SARIF_FILE="$GITHUB_WORKSPACE/results/javascript.sarif"
-        if [ -f "$SARIF_FILE" ]; then
-          TOTAL=$(jq '[.runs[].results // []] | map(length) | add // 0' "$SARIF_FILE")
-          ERRORS=$(jq '[.runs[].results[]? | select(.level=="error")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          WARNINGS=$(jq '[.runs[].results[]? | select(.level=="warning")] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          NOTES=$(jq '[.runs[].results[]? | select(.level=="note" or .level==null)] | length' "$SARIF_FILE" 2>/dev/null || echo 0)
-          FINDINGS=$(jq -r '
-            .runs[].results[]? |
-            "- **[" + (.ruleId // "N/A") + "]** " +
-            (.message.text // "sin mensaje") +
-            " — `" + (.locations[0].physicalLocation.artifactLocation.uri // "?") +
-            ":" + ((.locations[0].physicalLocation.region.startLine // 0) | tostring) + "`"
-          ' "$SARIF_FILE" 2>/dev/null | head -20)
-          [ -z "$FINDINGS" ] && FINDINGS="_No se encontraron hallazgos._"
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
-          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
-          echo "notes=$NOTES" >> $GITHUB_OUTPUT
-          { echo "findings<<EOF"; echo "$FINDINGS"; echo "EOF"; } >> $GITHUB_OUTPUT
-        else
-          echo "total=0" >> $GITHUB_OUTPUT
-          echo "errors=0" >> $GITHUB_OUTPUT
-          echo "warnings=0" >> $GITHUB_OUTPUT
-          echo "notes=0" >> $GITHUB_OUTPUT
-          echo "findings=_SARIF no encontrado._" >> $GITHUB_OUTPUT
-        fi
+  # ─────────────────────────────────────────────
+  # Job 3: Comentar alertas reales en el PR
+  # ─────────────────────────────────────────────
+  comment-pr:
+    name: Publicar alertas en PR
+    runs-on: ubuntu-latest
+    needs: [analyze-backend, analyze-frontend]
+    if: always()
+    permissions:
+      pull-requests: write
+      security-events: read
 
-    - name: Publicar resumen CodeQL (TypeScript) en Summary
-      if: always()
-      shell: bash
-      run: |
-        echo "## 🔍 CodeQL – TypeScript Frontend (Ionic)" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.sarif_ts.outputs.findings }}" >> $GITHUB_STEP_SUMMARY
+    steps:
+    - name: Esperar procesamiento de alertas
+      run: sleep 20
 
-    - name: Comentar resultados CodeQL (TypeScript) en PR
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: always()
+    - name: Consultar alertas y comentar en PR
+      uses: actions/github-script@v7
       with:
-        header: codeql-typescript
-        message: |
-          ## 🔍 CodeQL – Análisis de Seguridad TypeScript (Ionic Frontend)
-          </details>
+        script: |
+          const prNumber = context.payload.pull_request.number;
+          const sha = context.payload.pull_request.head.sha;
+          const { owner, repo } = context.repo;
+          const securityUrl = `https://github.com/${owner}/${repo}/security/code-scanning?query=pr%3A${prNumber}`;
 
-          >  🔗 [Ver resultados completos en Security → Code scanning](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }})
-          >
-          > *Commit: `${{ github.sha }}`*
+          // Obtener alertas de code scanning asociadas al commit del PR
+          let alerts = [];
+          try {
+            const res = await github.rest.codeScanning.listAlertsForRepo({
+              owner,
+              repo,
+              ref: sha,
+              state: 'open',
+              per_page: 100,
+            });
+            alerts = res.data;
+          } catch (e) {
+            console.log('No se pudieron obtener alertas:', e.message);
+          }
+
+          // Agrupar por severidad
+          const bySev = (sev) => alerts.filter(a =>
+            (a.rule.security_severity_level ?? a.rule.severity ?? '').toLowerCase() === sev
+          );
+          const critical = bySev('critical');
+          const high     = bySev('high');
+          const medium   = bySev('medium');
+          const low      = bySev('low');
+          const other    = alerts.filter(a =>
+            !['critical','high','medium','low'].includes(
+              (a.rule.security_severity_level ?? a.rule.severity ?? '').toLowerCase()
+            )
+          );
+
+          const status = alerts.length === 0
+            ? '✅ No se encontraron alertas de seguridad'
+            : `⚠️ Se encontraron **${alerts.length}** alerta(s)`;
+
+          // Tabla de hallazgos (máx. 20)
+          const top = alerts.slice(0, 20);
+          const rows = top.map(a => {
+            const loc  = a.most_recent_instance?.location;
+            const file = loc?.path ?? '?';
+            const line = loc?.start_line ?? '?';
+            const sev  = a.rule.security_severity_level ?? a.rule.severity ?? 'N/A';
+            const desc = (a.rule.description ?? 'Sin descripción').replace(/\|/g, '\\|');
+            return `| \`${a.rule.id}\` | ${desc} | ${sev} | \`${file}:${line}\` |`;
+          });
+
+          const findingsTable = top.length > 0
+            ? [
+                '<details>',
+                `<summary>📋 Ver hallazgos detallados (${top.length}/${alerts.length})</summary>`,
+                '',
+                '| Regla | Descripción | Severidad | Ubicación |',
+                '|---|---|---|---|',
+                ...rows,
+                '',
+                '</details>',
+              ].join('\n')
+            : '';
+
+          const marker = '<!-- codeql-scan-comment -->';
+          const body = [
+            marker,
+            '## 🔍 CodeQL – Resultados del Análisis de Seguridad',
+            '',
+            `**Estado:** ${status}`,
+            '',
+            '### 📊 Resumen por severidad',
+            '',
+            '| Severidad | Cantidad |',
+            '|---|---|',
+            `| 🔴 Crítica | ${critical.length} |`,
+            `| 🟠 Alta | ${high.length} |`,
+            `| 🟡 Media | ${medium.length} |`,
+            `| 🟢 Baja | ${low.length} |`,
+            `| ⚪ Otras | ${other.length} |`,
+            `| 📌 **Total** | **${alerts.length}** |`,
+            '',
+            findingsTable,
+            '',
+            `> 🔗 [Ver todas las alertas en Security → Code scanning](${securityUrl})`,
+            `> *Commit: \`${sha}\`*`,
+          ].join('\n');
+
+          // Actualizar comentario existente o crear uno nuevo
+          const { data: comments } = await github.rest.issues.listComments({
+            owner, repo, issue_number: prNumber,
+          });
+          const existing = comments.find(c => c.body?.includes(marker));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner, repo, comment_id: existing.id, body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: prNumber, body,
+            });
+          }

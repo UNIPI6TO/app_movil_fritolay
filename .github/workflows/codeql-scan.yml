@@ -238,39 +238,3 @@ jobs:
           > 🔗 [Ver resultados completos en Security → Code scanning](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }})
           >
           > *Commit: `${{ github.sha }}`*
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Nivel | Cantidad |" >> $GITHUB_STEP_SUMMARY
-        echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔴 Errores | ${{ steps.sarif_ts.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟠 Advertencias | ${{ steps.sarif_ts.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🟡 Notas | ${{ steps.sarif_ts.outputs.notes }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📌 **Total** | **${{ steps.sarif_ts.outputs.total }}** |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Hallazgos" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.sarif_ts.outputs.findings }}" >> $GITHUB_STEP_SUMMARY
-
-    - name: Comentar resultados CodeQL (TypeScript) en PR
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: always()
-      with:
-        header: codeql-typescript
-        message: |
-          ## 🔍 CodeQL – Análisis de Seguridad TypeScript (Ionic Frontend)
-
-          | Nivel | Cantidad |
-          |---|---|
-          | 🔴 Errores | ${{ steps.sarif_ts.outputs.errors }} |
-          | 🟠 Advertencias | ${{ steps.sarif_ts.outputs.warnings }} |
-          | 🟡 Notas | ${{ steps.sarif_ts.outputs.notes }} |
-          | 📌 **Total** | **${{ steps.sarif_ts.outputs.total }}** |
-
-          <details>
-          <summary>📋 Ver hallazgos detallados (máx. 20)</summary>
-
-          ${{ steps.sarif_ts.outputs.findings }}
-
-          </details>
-
-          > 🔗 Resultados completos en [Security → Code scanning alerts](../../../security/code-scanning)
-          >
-          > *Commit: `${{ github.sha }}`*

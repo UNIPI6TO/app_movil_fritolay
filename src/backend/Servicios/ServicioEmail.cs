@@ -36,13 +36,19 @@ namespace backend.Servicios
         }
 
         /// <summary>
+        /// Sanitiza un valor de entrada para uso seguro en logs (elimina caracteres de salto de línea).
+        /// </summary>
+        private static string SanitizarParaLog(string? valor) =>
+            valor?.Replace("\r", string.Empty).Replace("\n", string.Empty) ?? string.Empty;
+
+        /// <summary>
         /// Envía código de recuperación de contraseña
         /// </summary>
         public async Task<bool> EnviarCodigoRecuperacionAsync(string correoDestino, string nombreUsuario, string codigo)
         {
             try
             {
-                _logger.LogInformation($"Iniciando envío de código de recuperación a {correoDestino}");
+                _logger.LogInformation($"Iniciando envío de código de recuperación a {SanitizarParaLog(correoDestino)}");
 
                 var asunto = "🔐 Código de Recuperación - Frito Lay";
                 
@@ -113,7 +119,7 @@ namespace backend.Servicios
         {
             try
             {
-                _logger.LogInformation($"Iniciando envío de confirmación de registro a {correoDestino}");
+                _logger.LogInformation($"Iniciando envío de confirmación de registro a {SanitizarParaLog(correoDestino)}");
 
                 var asunto = "✅ ¡Bienvenido a Frito Lay!";
                 
@@ -214,10 +220,10 @@ namespace backend.Servicios
 
                 mailMessage.To.Add(new MailAddress(correoDestino, nombreDestino));
 
-                _logger.LogInformation($"Enviando email a {correoDestino}...");
+                _logger.LogInformation($"Enviando email a {SanitizarParaLog(correoDestino)}...");
                 await cliente.SendMailAsync(mailMessage);
 
-                _logger.LogInformation($"✅ Email enviado exitosamente a {correoDestino}");
+                _logger.LogInformation($"✅ Email enviado exitosamente a {SanitizarParaLog(correoDestino)}");
                 return true;
             }
             catch (SmtpException smtpEx)

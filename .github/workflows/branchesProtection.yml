@@ -1,0 +1,33 @@
+name: Validar el WorkFlow
+
+on:
+  pull_request:
+    branches:
+      - main
+      - release/*
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar flujo de ramas
+        run: |
+          SOURCE_BRANCH=${{ github.head_ref }}
+          TARGET_BRANCH=${{ github.base_ref }}
+          
+          echo "Source: $SOURCE_BRANCH"
+          echo "Target: $TARGET_BRANCH"
+
+          # Regla 1: Solo release/* puede ir a main
+          if [[ "$TARGET_BRANCH" == "main" && ! "$SOURCE_BRANCH" =~ ^release/ ]]; then
+            echo "Error: Solo se permiten Pull Requests a 'main' desde ramas 'release/*'"
+            exit 1
+          fi
+
+          # Regla 2: Solo develop puede ir a release/*
+          if [[ "$TARGET_BRANCH" =~ ^release/ && "$SOURCE_BRANCH" != "develop" ]]; then
+            echo "Error: Solo se permiten Pull Requests a 'release/*' desde 'develop'"
+            exit 1
+          fi
+
+          echo "Flujo de ramas correcto."

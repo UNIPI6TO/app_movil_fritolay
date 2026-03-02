@@ -1,0 +1,194 @@
+name: Frontend Tests (Angular/Ionic)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ develop ]
+    paths:
+      - 'src/fritolay-app/**'
+      - '.github/workflows/frontend-tests.yml'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Run Frontend Unit Tests
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/fritolay-app
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: src/fritolay-app/package-lock.json
+
+    - name: Instalar dependencias
+      run: npm ci
+
+    - name: Verificar formato de código
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Ejecutar tests con cobertura
+      id: tests
+      run: |
+        npm run test:ci 2>&1 | tee test-output.txt
+        TEST_EXIT_CODE=${PIPESTATUS[0]}
+        echo "exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+        exit $TEST_EXIT_CODE
+      env:
+        CHROME_BIN: /usr/bin/google-chrome-stable
+      continue-on-error: true
+
+    - name: Extraer resultados de tests
+      if: always()
+      id: test_results
+      run: |
+        if [ -f test-output.txt ]; then
+          # Extraer resumen de tests
+          SUMMARY=$(grep -A 5 "TOTAL:" test-output.txt || echo "No se encontró resumen")
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extraer cobertura
+          COVERAGE=$(grep -A 10 "Coverage summary" test-output.txt || echo "")
+          echo "coverage<<EOF" >> $GITHUB_OUTPUT
+          echo "$COVERAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extraer últimas líneas completas
+          DETAILS=$(tail -n 40 test-output.txt)
+          echo "details<<EOF" >> $GITHUB_OUTPUT
+          echo "$DETAILS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Mostrar en el log del workflow
+          echo "### 📊 Resumen de Tests ###"
+          echo "$SUMMARY"
+          echo ""
+          echo "### 📈 Cobertura de Código ###"
+          echo "$COVERAGE"
+        fi
+
+    - name: Comentar resultados de tests en PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request' && always()
+      with:
+        header: frontend-test-results
+        message: |
+          ## 🧪 Resultados de Tests Frontend
+          
+          **Status**: ${{ steps.tests.outputs.exit_code == '0' && '✅ Todos los tests pasaron' || '❌ Algunos tests fallaron' }}
+          
+          ### 📊 Resumen de Tests
+          ```
+          ${{ steps.test_results.outputs.summary }}
+          ```
+          
+          ### 📈 Cobertura de Código
+          ```
+          ${{ steps.test_results.outputs.coverage }}
+          ```
+          
+          <details>
+          <summary>🔍 Ver detalles completos de ejecución</summary>
+          
+          ```
+          ${{ steps.test_results.outputs.details }}
+          ```
+          </details>
+          
+          ---
+          *Workflow ejecutado en commit: `${{ github.sha }}`*
+
+    - name: Publicar resumen de resultados
+      if: always()
+      run: |
+        echo "## 🧪 Resultados de Tests Frontend" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ${{ steps.tests.outputs.exit_code == '0' && '✅ Todos los tests pasaron' || '❌ Algunos tests fallaron' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 Resumen de Tests" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.test_results.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📈 Cobertura de Código" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.test_results.outputs.coverage }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "<details><summary>🔍 Ver detalles completos</summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.test_results.outputs.details }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
+
+    - name: Verificar que los tests pasaron
+      if: steps.tests.outputs.exit_code != '0'
+      run: exit 1
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: ./src/fritolay-app/coverage/app/lcov.info
+        flags: frontend
+        name: frontend-coverage
+        fail_ci_if_error: false
+
+    - name: Comentar cobertura en PR
+      uses: romeovs/lcov-reporter-action@v0.3.1
+      if: github.event_name == 'pull_request'
+      with:
+        lcov-file: ./src/fritolay-app/coverage/app/lcov.info
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        delete-old-comments: true
+
+  build-check:
+    name: Verificar Build de Producción
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: src/fritolay-app
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: src/fritolay-app/package-lock.json
+
+    - name: Instalar dependencias
+      run: npm ci
+
+    - name: Build para producción
+      run: npm run build --if-present
+
+    - name: Verificar tamaño de bundle
+      run: |
+        if [ -d "www" ]; then
+          echo "📦 Tamaño del bundle:"
+          du -sh www/
+          find www/ -name "*.js" -exec ls -lh {} \; | awk '{print $5, $9}'
+        fi
+
+

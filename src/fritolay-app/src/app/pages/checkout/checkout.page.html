@@ -1,0 +1,312 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancelar()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Checkout</ion-title>
+  </ion-toolbar>
+
+  <!-- Indicador de pasos -->
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="currentStep" [disabled]="true">
+      <ion-segment-button [value]="1">
+        <ion-label>1. Confirmar</ion-label>
+      </ion-segment-button>
+      <ion-segment-button [value]="2">
+        <ion-label>2. Entrega</ion-label>
+      </ion-segment-button>
+      <ion-segment-button [value]="3">
+        <ion-label>3. Pago</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding" style="--padding-bottom: 120px;">
+  
+  <!-- PASO 1: CONFIRMACIÓN DE PEDIDO -->
+  <div *ngIf="currentStep === 1">
+    <h2>Resumen del Pedido</h2>
+    
+    <ion-card *ngFor="let item of items">
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="3">
+              <img [src]="getImagenProducto(item.producto)" [alt]="item.producto.nombre" style="width: 100%; border-radius: 8px;">
+            </ion-col>
+            <ion-col size="9">
+              <h3>{{ item.producto.nombre }}</h3>
+              <p><strong>Cantidad:</strong> {{ item.cantidad }}</p>
+              
+              <!-- Desglose de precios por unidad -->
+              <div style="font-size: 0.9em; margin-top: 8px;">
+                <p style="margin: 2px 0;">
+                  <span style="color: #666;">Precio base:</span>
+                  <strong>${{ getPrecioBase(item.producto).toFixed(2) }}</strong>
+                </p>
+                
+                <p *ngIf="getDescuentoPercent(item.producto) > 0" style="margin: 2px 0; color: var(--ion-color-success);">
+                  <span>Descuento ({{ getDescuentoPercent(item.producto) }}%):</span>
+                  <strong>- ${{ (getPrecioBase(item.producto) * getDescuentoPercent(item.producto) / 100).toFixed(2) }}</strong>
+                </p>
+                
+                <p *ngIf="item.producto.ivaPercent > 0" style="margin: 2px 0; color: #888;">
+                  <span>IVA ({{ item.producto.ivaPercent }}%):</span>
+                  <strong>+ ${{ ((getPrecioBase(item.producto) - (getPrecioBase(item.producto) * getDescuentoPercent(item.producto) / 100)) * item.producto.ivaPercent / 100).toFixed(2) }}</strong>
+                </p>
+                
+                <p style="margin: 6px 0 2px 0; padding-top: 4px; border-top: 1px solid #ddd;">
+                  <span style="color: var(--ion-color-primary);">Precio unitario final:</span>
+                  <strong style="font-size: 1.1em; color: var(--ion-color-primary);">${{ getPrecioFinal(item.producto).toFixed(2) }}</strong>
+                </p>
+              </div>
+              
+              <p style="margin-top: 12px; padding-top: 8px; border-top: 2px solid #ddd;">
+                <span style="color: var(--ion-color-medium); font-size: 0.95em;">Subtotal ({{ item.cantidad }} unidades):</span><br>
+                <strong style="font-size: 1.2em; color: var(--ion-color-primary);">${{ getPrecioFinalTotal(item).toFixed(2) }}</strong>
+              </p>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Totales Generales -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Resumen de Pago</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-label>Subtotal (sin descuento ni IVA):</ion-label>
+          <ion-note slot="end">${{ getSubtotalCarrito().toFixed(2) }}</ion-note>
+        </ion-item>
+        <ion-item lines="none" *ngIf="getTotalDescuentoCarrito() > 0">
+          <ion-label color="success">Descuento Total:</ion-label>
+          <ion-note slot="end" color="success">- ${{ getTotalDescuentoCarrito().toFixed(2) }}</ion-note>
+        </ion-item>
+        <ion-item lines="none" style="border-top: 1px solid #ddd; padding-top: 8px; margin-top: 4px;">
+          <ion-label>Subtotal con descuento:</ion-label>
+          <ion-note slot="end">${{ (getSubtotalCarrito() - getTotalDescuentoCarrito()).toFixed(2) }}</ion-note>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-label color="medium">IVA (sobre precio con descuento):</ion-label>
+          <ion-note slot="end" color="medium">${{ getTotalIvaCarrito().toFixed(2) }}</ion-note>
+        </ion-item>
+        <ion-item lines="none" style="border-top: 2px solid var(--ion-color-primary); padding-top: 12px; margin-top: 8px;">
+          <ion-label><strong>Total a Pagar:</strong></ion-label>
+          <ion-note slot="end" style="font-size: 1.3em; font-weight: bold; color: var(--ion-color-primary);">
+            ${{ getTotalCarrito().toFixed(2) }}
+          </ion-note>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" color="primary" (click)="siguientePaso()">
+      Continuar a Datos de Entrega
+      <ion-icon slot="end" name="arrow-forward"></ion-icon>
+    </ion-button>
+    <div style="height: 40px;"></div>
+  </div>
+
+  <!-- PASO 2: DATOS DE ENTREGA -->
+  <div *ngIf="currentStep === 2">
+    <h2>Datos de Entrega</h2>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Dirección de Entrega</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Dirección Completa *</ion-label>
+          <ion-textarea 
+            [(ngModel)]="direccionEntrega" 
+            placeholder="Ej: Av. Principal #123, Sector Centro"
+            rows="3"
+          ></ion-textarea>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Ubicación GPS</ion-label>
+          <ion-button fill="outline" (click)="obtenerUbicacionActual()">
+            <ion-icon slot="start" name="locate"></ion-icon>
+            Actualizar
+          </ion-button>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label>
+            <p><strong>Latitud:</strong> {{ latitudEntrega.toFixed(6) }}</p>
+            <p><strong>Longitud:</strong> {{ longitudEntrega.toFixed(6) }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Mapa de ubicación -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Seleccione la ubicación exacta</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content style="padding: 0; overflow: hidden;">
+        <div style="height: 400px; width: 100%; display: block; position: relative;">
+          <app-mapa-entrega 
+            [latitud]="latitudEntrega" 
+            [longitud]="longitudEntrega"
+            (ubicacionSeleccionada)="onUbicacionSeleccionada($event)"
+            style="height: 100%; width: 100%; display: block;"
+          ></app-mapa-entrega>
+        </div>
+      </ion-card-content>
+      <ion-card-content>
+        <ion-note>
+          <small>Haga clic en el mapa o arrastre el marcador para ajustar la ubicación exacta de entrega</small>
+        </ion-note>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" color="light" (click)="pasoAnterior()">
+      <ion-icon slot="start" name="arrow-back"></ion-icon>
+      Regresar
+    </ion-button>
+    <ion-button expand="block" color="primary" (click)="siguientePaso()">
+      Continuar a Método de Pago
+      <ion-icon slot="end" name="arrow-forward"></ion-icon>
+    </ion-button>
+    <div style="height: 40px;"></div>
+  </div>
+
+  <!-- PASO 3: MÉTODO DE PAGO -->
+  <div *ngIf="currentStep === 3">
+    <h2>Método de Pago</h2>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Seleccione el método de pago</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-radio-group [(ngModel)]="metodoPago">
+          <ion-item>
+            <ion-radio slot="start" value="Efectivo"></ion-radio>
+            <ion-label>
+              <h3>Efectivo Contra Entrega</h3>
+              <p>Pague en efectivo al recibir su pedido</p>
+            </ion-label>
+          </ion-item>
+
+          <ion-item>
+            <ion-radio slot="start" value="Transferencia"></ion-radio>
+            <ion-label>
+              <h3>Transferencia Bancaria</h3>
+              <p>Transfiera a nuestra cuenta bancaria</p>
+            </ion-label>
+          </ion-item>
+
+          <ion-item>
+            <ion-radio slot="start" value="Tarjeta"></ion-radio>
+            <ion-label>
+              <h3>Tarjeta de Crédito/Débito</h3>
+              <p>Pago con tarjeta (simulación)</p>
+            </ion-label>
+          </ion-item>
+        </ion-radio-group>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- FORMULARIO DE TRANSFERENCIA -->
+    <ion-card *ngIf="metodoPago === 'Transferencia'">
+      <ion-card-header>
+        <ion-card-subtitle>Datos de Transferencia</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Referencia de Transferencia *</ion-label>
+          <ion-input 
+            [(ngModel)]="referenciaTransferencia" 
+            placeholder="Ej: 1234567890"
+            type="text"
+          ></ion-input>
+        </ion-item>
+        <ion-note color="medium">
+          <small>Ingrese el número de referencia de su transferencia</small>
+        </ion-note>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- FORMULARIO DE TARJETA (SIMULACIÓN - NO SE GUARDA) -->
+    <ion-card *ngIf="metodoPago === 'Tarjeta'">
+      <ion-card-header>
+        <ion-card-subtitle>Datos de la Tarjeta</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Número de Tarjeta *</ion-label>
+          <ion-input 
+            [(ngModel)]="tarjetaNumero" 
+            placeholder="1234 5678 9012 3456"
+            type="text"
+            maxlength="19"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Nombre del Titular *</ion-label>
+          <ion-input 
+            [(ngModel)]="tarjetaNombre" 
+            placeholder="Como aparece en la tarjeta"
+            type="text"
+          ></ion-input>
+        </ion-item>
+
+        <ion-row>
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="stacked">Vencimiento *</ion-label>
+              <ion-input 
+                [(ngModel)]="tarjetaExpiracion" 
+                placeholder="MM/YY"
+                type="text"
+                maxlength="5"
+              ></ion-input>
+            </ion-item>
+          </ion-col>
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="stacked">CVV *</ion-label>
+              <ion-input 
+                [(ngModel)]="tarjetaCvv" 
+                placeholder="123"
+                type="password"
+                maxlength="4"
+              ></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+
+        
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Resumen final -->
+    <ion-card color="primary">
+      <ion-card-content>
+        <h3 style="margin: 0; color: white;">Total a Pagar: ${{ getTotalCarrito().toFixed(2) }}</h3>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" color="light" (click)="pasoAnterior()">
+      <ion-icon slot="start" name="arrow-back"></ion-icon>
+      Regresar
+    </ion-button>
+    <ion-button expand="block" color="success" (click)="confirmarPedido()">
+      <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+      Confirmar Pedido
+    </ion-button>
+    <div style="height: 60px;"></div>
+  </div>
+
+</ion-content>

@@ -13,11 +13,19 @@
     "Emisor": "AppPedidosBackend",
     "Audiencia": "AppPedidosMovil"
   },
+  "Smtp": {
+    "Servidor": "smtp.gmail.com",
+    "Puerto": 587,
+    "EmailOrigen": "app.movil.pedidos6to@gmail.com",
+    "Usuario": "app.movil.pedidos6to@gmail.com",
+    "Contrasena": "AQUI_GENERA_APP_PASSWORD_EN_MYACCOUNT_GOOGLE_COM",
+    "NombreOrigen": "Frito Lay - Sistema de Pedidos",
+    "UsarSSL": true
+  },
 
   "AllowedHosts": "*",
   "Application": {
-    "Version": "0.1.0",
+    "Version": "1.1.0",
     "Name": "Pedidos App"
-
   }
 }

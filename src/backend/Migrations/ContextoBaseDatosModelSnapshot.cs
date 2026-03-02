@@ -77,19 +77,43 @@ namespace backend.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("DescuentoTotalLinea")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("IdPedido")
                         .HasColumnType("int");
 
                     b.Property<int>("IdProducto")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("ImpuestoCobrado")
+                    b.Property<decimal>("ImpuestoTotalLinea")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PorcentajeDescuento")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PorcentajeImpuesto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PrecioUnitarioBase")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PrecioUnitarioConDescuento")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PrecioUnitarioFinal")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("SubtotalLinea")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("TotalLinea")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorDescuento")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorImpuesto")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("IdDetalle");
@@ -99,6 +123,52 @@ namespace backend.Migrations
                     b.HasIndex("IdProducto");
 
                     b.ToTable("DetallesPedido");
+                });
+
+            modelBuilder.Entity("backend.Modelos.EntregaPedido", b =>
+                {
+                    b.Property<int>("IdEntrega")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdEntrega"));
+
+                    b.Property<int>("CantidadEntregada")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DireccionEntregaReal")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FechaEntrega")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdPedido")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("LatitudEntrega")
+                        .HasColumnType("decimal(18,8)");
+
+                    b.Property<decimal?>("LongitudEntrega")
+                        .HasColumnType("decimal(18,8)");
+
+                    b.Property<string>("Observaciones")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenciaSeguimiento")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("IdEntrega");
+
+                    b.HasIndex("IdPedido");
+
+                    b.ToTable("EntregasPedido");
                 });
 
             modelBuilder.Entity("backend.Modelos.ImagenProducto", b =>
@@ -123,6 +193,42 @@ namespace backend.Migrations
                     b.ToTable("ImagenesProducto");
                 });
 
+            modelBuilder.Entity("backend.Modelos.PagoPedido", b =>
+                {
+                    b.Property<int>("IdPago")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPago"));
+
+                    b.Property<DateTime>("FechaPago")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdPedido")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MetodoPagoUtilizado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("MontoPagado")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Observaciones")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenciaPago")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("IdPago");
+
+                    b.HasIndex("IdPedido");
+
+                    b.ToTable("PagosPedido");
+                });
+
             modelBuilder.Entity("backend.Modelos.Pedido", b =>
                 {
                     b.Property<int>("IdPedido")
@@ -130,6 +236,9 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPedido"));
+
+                    b.Property<decimal>("CantidadEntregada")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("DireccionEntrega")
                         .IsRequired()
@@ -139,17 +248,39 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("FechaConfirmacionPago")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaEntrega")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("IdCliente")
                         .HasColumnType("int");
 
+                    b.Property<decimal?>("LatitudEntrega")
+                        .HasColumnType("decimal(18,8)");
+
+                    b.Property<decimal?>("LongitudEntrega")
+                        .HasColumnType("decimal(18,8)");
+
                     b.Property<string>("MetodoPago")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("MontoTotalPagado")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ReferenciaTransferencia")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalDescuento")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalImpuestos")
@@ -176,10 +307,20 @@ namespace backend.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LineaProducto")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -194,6 +335,11 @@ namespace backend.Migrations
 
                     b.Property<decimal>("PrecioBase")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SKU")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("IdProducto");
 
@@ -219,6 +365,17 @@ namespace backend.Migrations
                     b.Navigation("Producto");
                 });
 
+            modelBuilder.Entity("backend.Modelos.EntregaPedido", b =>
+                {
+                    b.HasOne("backend.Modelos.Pedido", "Pedido")
+                        .WithMany("Entregas")
+                        .HasForeignKey("IdPedido")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
+                });
+
             modelBuilder.Entity("backend.Modelos.ImagenProducto", b =>
                 {
                     b.HasOne("backend.Modelos.Producto", "Producto")
@@ -228,6 +385,17 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Producto");
+                });
+
+            modelBuilder.Entity("backend.Modelos.PagoPedido", b =>
+                {
+                    b.HasOne("backend.Modelos.Pedido", "Pedido")
+                        .WithMany("Pagos")
+                        .HasForeignKey("IdPedido")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
                 });
 
             modelBuilder.Entity("backend.Modelos.Pedido", b =>
@@ -244,6 +412,10 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Modelos.Pedido", b =>
                 {
                     b.Navigation("Detalles");
+
+                    b.Navigation("Entregas");
+
+                    b.Navigation("Pagos");
                 });
 
             modelBuilder.Entity("backend.Modelos.Producto", b =>

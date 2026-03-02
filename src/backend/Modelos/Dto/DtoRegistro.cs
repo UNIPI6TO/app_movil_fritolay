@@ -33,4 +33,10 @@ namespace backend.Modelos.Dto
         public string CodigoVerificacion { get; set; }
         public string NuevaContrasena { get; set; }
     }
+
+    // Para Solicitar recuperación (cuerpo JSON)
+    public class DtoRecuperar
+    {
+        public string CorreoElectronico { get; set; }
+    }
 }

@@ -29,3 +29,4 @@ Thumbs.db
 ## Logs
 *.log
 src/backend/appsettings.json
+/src/backend/TestResults

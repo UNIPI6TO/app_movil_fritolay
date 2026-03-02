@@ -28,8 +28,16 @@ namespace backend.Modelos
 
         public bool Activo { get; set; } = true;
 
-        
+        [MaxLength(100)]
+        public string SKU { get; set; }
+
         public List<ImagenProducto> Imagenes { get; set; }
+
+        // Nueva información categórica
+        [MaxLength(100)]
+        public string LineaProducto { get; set; }
+        [MaxLength(100)]
+        public string Categoria { get; set; }
 
     }
     public class ImagenProducto

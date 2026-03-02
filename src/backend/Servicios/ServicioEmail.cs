@@ -42,13 +42,43 @@ namespace backend.Servicios
             valor?.Replace("\r", string.Empty).Replace("\n", string.Empty) ?? string.Empty;
 
         /// <summary>
+        /// Redacta parcialmente un correo electrónico para uso seguro en logs.
+        /// </summary>
+        /// <param name="correo">Correo electrónico original.</param>
+        /// <returns>Correo redactado (por ejemplo u***@dominio.com) o cadena vacía si es nulo o vacío.</returns>
+        private static string RedactarCorreoParaLog(string? correo)
+        {
+            if (string.IsNullOrWhiteSpace(correo))
+            {
+                return string.Empty;
+            }
+
+            var limpiado = SanitizarParaLog(correo);
+            var partes = limpiado.Split('@');
+            if (partes.Length != 2 || string.IsNullOrEmpty(partes[0]))
+            {
+                return "***";
+            }
+
+            var usuario = partes[0];
+            var dominio = partes[1];
+
+            // Mostrar solo el primer carácter del usuario para facilitar la correlación.
+            var visible = usuario[0];
+            return $"{visible}***@{dominio}";
+        }
+
+        /// <summary>
         /// Envía código de recuperación de contraseña
         /// </summary>
         public async Task<bool> EnviarCodigoRecuperacionAsync(string correoDestino, string nombreUsuario, string codigo)
         {
             try
             {
-                _logger.LogInformation($"Iniciando envío de código de recuperación a {SanitizarParaLog(correoDestino)}");
+                _logger.LogInformation(
+                    "Iniciando envío de código de recuperación a {EmailRedactado}",
+                    RedactarCorreoParaLog(correoDestino)
+                );
 
                 var asunto = "🔐 Código de Recuperación - Frito Lay";
                 

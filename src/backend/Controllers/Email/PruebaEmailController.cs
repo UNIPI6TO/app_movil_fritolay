@@ -23,7 +23,8 @@ namespace backend.Controllers.Email
         [HttpPost("enviar-prueba/{email}")]
         public async Task<IActionResult> EnviarPrueba(string email)
         {
-            _logger.LogWarning($"🧪 Prueba de email solicitada a: {email}");
+            var emailRedactado = RedactarEmail(email);
+            _logger.LogWarning("🧪 Prueba de email solicitada.");
 
             var resultado = await _servicioEmail.EnviarConfirmacionRegistroAsync(email, "Usuario Prueba");
             
@@ -31,7 +32,7 @@ namespace backend.Controllers.Email
             {
                 return Ok(new { 
                     mensaje = "✅ Email de prueba enviado exitosamente",
-                    email = email,
+                    emailRedactado,
                     timestamp = DateTime.UtcNow
                 });
             }
@@ -39,7 +40,7 @@ namespace backend.Controllers.Email
             {
                 return StatusCode(500, new { 
                     error = "❌ No se pudo enviar el email",
-                    email = email,
+                    emailRedactado,
                     consejo = "Revisa los logs del servidor y verifica la configuración SMTP en appsettings.json"
                 });
             }
@@ -52,7 +53,8 @@ namespace backend.Controllers.Email
         [HttpPost("enviar-codigo-prueba/{email}")]
         public async Task<IActionResult> EnviarCodigoPrueba(string email)
         {
-            _logger.LogWarning($"🧪 Prueba de email de código solicitada a: {email}");
+            var emailRedactado = RedactarEmail(email);
+            _logger.LogWarning("🧪 Prueba de email de código solicitada.");
 
             var codigoPrueba = "123456";
             var resultado = await _servicioEmail.EnviarCodigoRecuperacionAsync(email, "Usuario Prueba", codigoPrueba);
@@ -61,7 +63,7 @@ namespace backend.Controllers.Email
             {
                 return Ok(new { 
                     mensaje = "✅ Email de código enviado exitosamente",
-                    email = email,
+                    emailRedactado,
                     codigoEnviado = codigoPrueba,
                     timestamp = DateTime.UtcNow,
                     nota = "En desarrollo: El código es 123456"
@@ -71,10 +73,30 @@ namespace backend.Controllers.Email
             {
                 return StatusCode(500, new { 
                     error = "❌ No se pudo enviar el email de código",
-                    email = email,
+                    emailRedactado,
                     consejo = "Revisa los logs del servidor y verifica la configuración SMTP en appsettings.json"
                 });
             }
+        }
+
+        private static string RedactarEmail(string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return string.Empty;
+            }
+
+            var partes = email.Split('@');
+            if (partes.Length != 2 || string.IsNullOrEmpty(partes[0]))
+            {
+                return "***";
+            }
+
+            var usuario = partes[0];
+            var dominio = partes[1];
+
+            var visible = usuario[0];
+            return $"{visible}***@{dominio}";
         }
     }
 }

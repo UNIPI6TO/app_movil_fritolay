@@ -606,3 +606,4 @@ using var contexto = TestHelper.CrearContextoEnMemoria();
 **Mantenido por:** Backend Team  
 **Versión Backend:** v1.1.0-pre.1  
 **Versión Pruebas:** v1.0
+WILSON
